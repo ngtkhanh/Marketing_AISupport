@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Bookmark, Lightbulb } from 'lucide-react';
+import { Bookmark, Lightbulb } from 'lucide-react';
 import { useShortlist } from '@/hooks/useShortlist';
 
 export function Header() {
@@ -15,8 +16,15 @@ export function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200/80 shadow-sm shadow-indigo-500/10 group-hover:scale-105 transition-transform bg-white shrink-0">
+            <Image
+              src="/logo.png"
+              alt="MarketingAI Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">

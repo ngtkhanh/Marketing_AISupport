@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'MarketingAI - Trợ Lý Đề Xuất Ý Tưởng Marketing Theo Ngân Sách',
   description:
     'Trợ lý AI đề xuất 05 ý tưởng chiến dịch marketing theo ngân sách kèm timeline 04 tuần và tính năng Shortlist.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
