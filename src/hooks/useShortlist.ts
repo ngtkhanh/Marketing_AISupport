@@ -107,6 +107,56 @@ export function useShortlist() {
     [shortlist, isSaved, persist]
   );
 
+  // Lưu nhiều ý tưởng cùng lúc (hỗ trợ lưu toàn bộ cả 5 ý tưởng)
+  const saveMultipleIdeas = useCallback(
+    (
+      ideasToSave: MarketingIdea[],
+      context: Pick<CampaignInput, 'industry' | 'productName' | 'budgetLevel' | 'objective'>
+    ): { success: boolean; addedCount: number; message: string } => {
+      const existingIds = new Set(shortlist.map((item) => item.id));
+      const newIdeas = ideasToSave.filter((item) => !existingIds.has(item.id));
+
+      if (newIdeas.length === 0) {
+        return {
+          success: true,
+          addedCount: 0,
+          message: 'Tất cả các ý tưởng này đã có trong Shortlist.',
+        };
+      }
+
+      const now = new Date().toISOString();
+      const newEntries: ShortlistEntry[] = newIdeas.map((idea) => ({
+        id: idea.id,
+        savedAt: now,
+        context: {
+          industry: context.industry,
+          productName: context.productName,
+          budgetLevel: context.budgetLevel,
+          objective: context.objective,
+        },
+        idea,
+      }));
+
+      const newList = [...newEntries, ...shortlist];
+      const success = persist(newList);
+
+      if (!success) {
+        return {
+          success: false,
+          addedCount: 0,
+          message: 'Trình duyệt chặn bộ nhớ cục bộ hoặc bộ nhớ đã đầy.',
+        };
+      }
+
+      return {
+        success: true,
+        addedCount: newEntries.length,
+        message: `Đã lưu ${newEntries.length} ý tưởng vào Shortlist!`,
+      };
+    },
+    [shortlist, persist]
+  );
+
   // Xóa 1 ý tưởng
   const removeIdea = useCallback(
     (ideaId: string): boolean => {
@@ -127,8 +177,9 @@ export function useShortlist() {
     isLoaded,
     isSaved,
     saveIdea,
+    saveMultipleIdeas,
     removeIdea,
-    clearAll
+    clearAll,
   };
 }
 

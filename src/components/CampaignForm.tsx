@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { CampaignInput, BudgetLevel } from '@/types/marketing';
 import { BudgetSelector } from './BudgetSelector';
 import { campaignInputSchema } from '@/lib/schemas';
-import { Sparkles, Wand2, ArrowRight } from 'lucide-react';
+import { Sparkles, Wand2, ArrowRight, RotateCcw } from 'lucide-react';
+import { useCampaign } from '@/context/CampaignContext';
 
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => Promise<void>;
@@ -58,20 +59,30 @@ const POPULAR_OBJECTIVES = [
 ];
 
 export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
-  const [industry, setIndustry] = useState('');
-  const [productName, setProductName] = useState('');
-  const [budgetLevel, setBudgetLevel] = useState<BudgetLevel>('low');
-  const [objective, setObjective] = useState('');
-  const [additionalNotes, setAdditionalNotes] = useState('');
+  const { formData, updateFormField, setFormData, resetForm } = useCampaign();
+  const { industry, productName, budgetLevel, objective, additionalNotes } = formData;
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  const isFormDirty =
+    Boolean(industry.trim()) ||
+    Boolean(productName.trim()) ||
+    Boolean(objective.trim()) ||
+    Boolean(additionalNotes.trim());
+
   const handlePrefill = (preset: (typeof PRESET_SAMPLES)[number]) => {
-    setIndustry(preset.data.industry);
-    setProductName(preset.data.productName);
-    setBudgetLevel(preset.data.budgetLevel);
-    setObjective(preset.data.objective);
-    setAdditionalNotes(preset.data.additionalNotes || '');
+    setFormData({
+      industry: preset.data.industry,
+      productName: preset.data.productName,
+      budgetLevel: preset.data.budgetLevel,
+      objective: preset.data.objective,
+      additionalNotes: preset.data.additionalNotes || '',
+    });
+    setFieldErrors({});
+  };
+
+  const handleReset = () => {
+    resetForm();
     setFieldErrors({});
   };
 
@@ -125,6 +136,18 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
               Mẫu {idx + 1}
             </button>
           ))}
+
+          {isFormDirty && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors border border-slate-200 flex items-center gap-1"
+              title="Xóa trắng toàn bộ form"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Làm mới</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -139,7 +162,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
             type="text"
             value={industry}
             onChange={(e) => {
-              setIndustry(e.target.value);
+              updateFormField('industry', e.target.value);
               if (fieldErrors.industry) setFieldErrors((prev) => ({ ...prev, industry: '' }));
             }}
             placeholder="Ví dụ: F&B, Thời trang, Mỹ phẩm..."
@@ -158,7 +181,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
                 key={ind}
                 type="button"
                 onClick={() => {
-                  setIndustry(ind);
+                  updateFormField('industry', ind);
                   if (fieldErrors.industry) setFieldErrors((prev) => ({ ...prev, industry: '' }));
                 }}
                 className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
@@ -179,7 +202,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
             type="text"
             value={productName}
             onChange={(e) => {
-              setProductName(e.target.value);
+              updateFormField('productName', e.target.value);
               if (fieldErrors.productName) setFieldErrors((prev) => ({ ...prev, productName: '' }));
             }}
             placeholder="Ví dụ: Trà sữa kem trứng dừa nướng Mộc Trà"
@@ -199,7 +222,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
       <BudgetSelector
         value={budgetLevel}
         onChange={(val) => {
-          setBudgetLevel(val);
+          updateFormField('budgetLevel', val);
           if (fieldErrors.budgetLevel) setFieldErrors((prev) => ({ ...prev, budgetLevel: '' }));
         }}
         error={fieldErrors.budgetLevel}
@@ -215,7 +238,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
           type="text"
           value={objective}
           onChange={(e) => {
-            setObjective(e.target.value);
+            updateFormField('objective', e.target.value);
             if (fieldErrors.objective) setFieldErrors((prev) => ({ ...prev, objective: '' }));
           }}
           placeholder="Ví dụ: Tăng độ nhận diện thương hiệu và kéo khách tới cửa hàng mới"
@@ -234,7 +257,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
               key={obj}
               type="button"
               onClick={() => {
-                setObjective(obj);
+                updateFormField('objective', obj);
                 if (fieldErrors.objective) setFieldErrors((prev) => ({ ...prev, objective: '' }));
               }}
               className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
@@ -254,7 +277,7 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
           id="additionalNotes"
           rows={2}
           value={additionalNotes}
-          onChange={(e) => setAdditionalNotes(e.target.value)}
+          onChange={(e) => updateFormField('additionalNotes', e.target.value)}
           placeholder="Ví dụ: Tone giọng hóm hỉnh, đối tượng chính là Gen Z, muốn tập trung TikTok và Threads..."
           className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 resize-none"
         />

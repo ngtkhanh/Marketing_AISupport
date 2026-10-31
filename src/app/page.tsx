@@ -1,24 +1,42 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { CampaignInput, MarketingIdea } from '@/types/marketing';
+import { CampaignInput } from '@/types/marketing';
 import { CampaignForm } from '@/components/CampaignForm';
 import { IdeaCard } from '@/components/IdeaCard';
 import { SkeletonIdeaList } from '@/components/Skeleton';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { SourceBadge } from '@/components/SourceBadge';
-import { Sparkles, Compass } from 'lucide-react';
+import { Sparkles, Compass, Bookmark, BookmarkCheck } from 'lucide-react';
+import { useCampaign } from '@/context/CampaignContext';
+import { useShortlist } from '@/hooks/useShortlist';
+import { useToast } from '@/components/Toast';
 
 export default function HomePage() {
+  const { ideas, setIdeas, lastInput, setLastInput } = useCampaign();
+  const { isSaved, saveMultipleIdeas } = useShortlist();
+  const { showToast } = useToast();
+
   const [isLoading, setIsLoading] = useState(false);
-  const [ideas, setIdeas] = useState<MarketingIdea[]>([]);
   const [resultSource, setResultSource] = useState<'ai' | 'mock'>('ai');
   const [resultModel, setResultModel] = useState<string | undefined>();
-  const [lastInput, setLastInput] = useState<CampaignInput | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | undefined>();
 
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  const savedCount = ideas.filter((idea) => isSaved(idea.id)).length;
+  const allSaved = ideas.length > 0 && savedCount === ideas.length;
+
+  const handleSaveAll = () => {
+    if (!lastInput || ideas.length === 0) return;
+    const res = saveMultipleIdeas(ideas, lastInput);
+    if (res.success) {
+      showToast(res.message, 'success');
+    } else {
+      showToast(res.message, 'error');
+    }
+  };
 
   const handleGenerate = async (input: CampaignInput) => {
     setIsLoading(true);
@@ -120,8 +138,34 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Badge nguồn AI thật / Demo dự phòng */}
-              <SourceBadge source={resultSource} model={resultModel} />
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={handleSaveAll}
+                  disabled={allSaved}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                    allSaved
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200 cursor-default'
+                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-pointer shadow-sm hover:shadow'
+                  }`}
+                  title={allSaved ? 'Toàn bộ 5 ý tưởng đã có trong Shortlist' : 'Lưu tất cả ý tưởng vào Shortlist'}
+                >
+                  {allSaved ? (
+                    <>
+                      <BookmarkCheck className="w-4 h-4 text-amber-600" />
+                      <span>Đã lưu cả 5 ý tưởng ({savedCount}/5)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-4 h-4 text-indigo-600" />
+                      <span>Lưu tất cả vào Shortlist {savedCount > 0 ? `(${savedCount}/5)` : ''}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Badge nguồn AI thật / Demo dự phòng */}
+                <SourceBadge source={resultSource} model={resultModel} />
+              </div>
             </div>
 
             {/* Danh sách 05 ý tưởng */}
