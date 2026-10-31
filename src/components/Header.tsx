@@ -21,11 +21,8 @@ export function Header() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-lg text-slate-900 tracking-tight">MarketingAI</span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Đề 9 · Bảng A
-              </span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block">Trợ lý gợi ý ý tưởng chiến dịch theo ngân sách</p>
+            <p className="text-xs text-slate-500 hidden sm:block">Trợ lý đề xuất ý tưởng Marketing theo ngân sách</p>
           </div>
         </Link>
 

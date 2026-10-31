@@ -31,7 +31,7 @@ Timeline triển khai 04 tuần:
 ${timelineFormatted}
 
 ---
-Trợ lý Marketing AI · Đề 9 Bảng A`;
+Trợ lý Marketing AI`;
 }
 
 /**

@@ -76,7 +76,7 @@ export default function HomePage() {
           <span>Giải pháp Marketing Đột Phá Bằng Trí Tuệ Nhân Tạo</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          Gợi Ý Ý Tưởng Chiến Dịch <br />
+          Đề Xuất Ý Tưởng Marketing <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
             Khả Thi Theo Từng Mức Ngân Sách
           </span>

@@ -268,19 +268,19 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
           className={`w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer ${
             isLoading
               ? 'bg-indigo-400 cursor-not-allowed opacity-80'
-              : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/35 active:scale-[0.99]'
+              : 'bg-indigo-600 bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/35 active:scale-[0.99]'
           }`}
         >
           {isLoading ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>AI Đang Phân Tích & Sáng Tạo 05 Ý Tưởng...</span>
+              <span className="text-white">AI Đang Phân Tích & Sáng Tạo 05 Ý Tưởng...</span>
             </>
           ) : (
             <>
-              <Sparkles className="w-5 h-5" />
-              <span>Gợi Ý 05 Ý Tưởng Chiến Dịch</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <Sparkles className="w-5 h-5 text-white" />
+              <span className="text-white">Đề Xuất 05 Ý Tưởng Marketing</span>
+              <ArrowRight className="w-4 h-4 ml-1 text-white" />
             </>
           )}
         </button>
