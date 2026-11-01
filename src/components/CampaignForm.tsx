@@ -6,10 +6,12 @@ import { BudgetSelector } from './BudgetSelector';
 import { campaignInputSchema } from '@/lib/schemas';
 import { Sparkles, Wand2, ArrowRight, RotateCcw } from 'lucide-react';
 import { useCampaign } from '@/context/CampaignContext';
+import { useToast } from '@/components/Toast';
 
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => Promise<void>;
   isLoading: boolean;
+  onReset?: () => void;
 }
 
 const PRESET_SAMPLES: Array<{
@@ -58,8 +60,9 @@ const POPULAR_OBJECTIVES = [
   'Gia tăng tương tác cộng đồng'
 ];
 
-export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
-  const { formData, updateFormField, setFormData, resetForm } = useCampaign();
+export function CampaignForm({ onSubmit, isLoading, onReset }: CampaignFormProps) {
+  const { formData, updateFormField, setFormData, clearAllCampaignData, ideas, lastInput } = useCampaign();
+  const { showToast } = useToast();
   const { industry, productName, budgetLevel, objective, additionalNotes } = formData;
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -69,6 +72,8 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
     Boolean(productName.trim()) ||
     Boolean(objective.trim()) ||
     Boolean(additionalNotes.trim());
+
+  const canReset = isFormDirty || ideas.length > 0 || Boolean(lastInput);
 
   const handlePrefill = (preset: (typeof PRESET_SAMPLES)[number]) => {
     setFormData({
@@ -82,8 +87,12 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
   };
 
   const handleReset = () => {
-    resetForm();
+    clearAllCampaignData();
     setFieldErrors({});
+    if (onReset) {
+      onReset();
+    }
+    showToast('Đã làm mới thông tin chiến dịch và đề xuất ý tưởng', 'info');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,14 +124,28 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6">
-      {/* Top Banner: Preset Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">Thông tin chiến dịch</h2>
-          <p className="text-xs text-slate-500">Điền thông tin bên dưới hoặc bấm nút điền mẫu để thử nghiệm nhanh</p>
+      {/* Top Banner: Header + Reset & Presets */}
+      <div className="pb-5 border-b border-slate-100 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Thông tin chiến dịch</h2>
+            <p className="text-xs text-slate-500">Điền thông tin bên dưới hoặc bấm nút điền mẫu để thử nghiệm nhanh</p>
+          </div>
+
+          {canReset && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-600 hover:border-rose-200 text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Làm mới form và xóa toàn bộ ý tưởng đề xuất"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Làm mới</span>
+            </button>
+          )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
           <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
             <Wand2 className="w-3.5 h-3.5 text-indigo-600" /> Điền thử mẫu:
           </span>
@@ -131,23 +154,11 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
               key={idx}
               type="button"
               onClick={() => handlePrefill(sample)}
-              className="text-xs px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium transition-colors border border-indigo-200"
+              className="text-xs px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium transition-colors border border-indigo-200 cursor-pointer"
             >
               Mẫu {idx + 1}
             </button>
           ))}
-
-          {isFormDirty && (
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors border border-slate-200 flex items-center gap-1"
-              title="Xóa trắng toàn bộ form"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Làm mới</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -283,12 +294,24 @@ export function CampaignForm({ onSubmit, isLoading }: CampaignFormProps) {
         />
       </div>
 
-      {/* Nút Submit */}
-      <div className="pt-2">
+      {/* Nút Submit & Nút Làm Mới */}
+      <div className="pt-2 flex flex-col-reverse sm:flex-row items-center gap-3">
+        {canReset && (
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={isLoading}
+            className="w-full sm:w-auto px-5 py-3.5 rounded-xl border border-slate-200 hover:border-rose-300 bg-slate-50 hover:bg-rose-50 text-slate-700 hover:text-rose-600 font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
+            title="Làm mới form và xóa toàn bộ ý tưởng đề xuất"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Làm mới</span>
+          </button>
+        )}
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer ${
             isLoading
               ? 'bg-indigo-400 cursor-not-allowed opacity-80'
               : 'bg-indigo-600 bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/35 active:scale-[0.99]'

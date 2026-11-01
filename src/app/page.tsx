@@ -7,13 +7,13 @@ import { IdeaCard } from '@/components/IdeaCard';
 import { SkeletonIdeaList } from '@/components/Skeleton';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { SourceBadge } from '@/components/SourceBadge';
-import { Sparkles, Compass, Bookmark, BookmarkCheck } from 'lucide-react';
+import { Sparkles, Compass, Bookmark, BookmarkCheck, RotateCcw } from 'lucide-react';
 import { useCampaign } from '@/context/CampaignContext';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useToast } from '@/components/Toast';
 
 export default function HomePage() {
-  const { ideas, setIdeas, lastInput, setLastInput } = useCampaign();
+  const { ideas, setIdeas, lastInput, setLastInput, clearAllCampaignData } = useCampaign();
   const { isSaved, saveMultipleIdeas } = useShortlist();
   const { showToast } = useToast();
 
@@ -27,6 +27,13 @@ export default function HomePage() {
 
   const savedCount = ideas.filter((idea) => isSaved(idea.id)).length;
   const allSaved = ideas.length > 0 && savedCount === ideas.length;
+
+  const handleResetAll = () => {
+    clearAllCampaignData();
+    setErrorMessage(null);
+    setErrorCode(undefined);
+    showToast('Đã làm mới thông tin chiến dịch và đề xuất ý tưởng', 'info');
+  };
 
   const handleSaveAll = () => {
     if (!lastInput || ideas.length === 0) return;
@@ -106,7 +113,14 @@ export default function HomePage() {
 
       {/* Form nhập thông tin chiến dịch (Feature 1) */}
       <section>
-        <CampaignForm onSubmit={handleGenerate} isLoading={isLoading} />
+        <CampaignForm
+          onSubmit={handleGenerate}
+          isLoading={isLoading}
+          onReset={() => {
+            setErrorMessage(null);
+            setErrorCode(undefined);
+          }}
+        />
       </section>
 
       {/* Vùng hiển thị lỗi (nếu có) */}
@@ -139,6 +153,16 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={handleResetAll}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 shadow-sm cursor-pointer active:scale-95"
+                  title="Làm mới form và xóa toàn bộ ý tưởng đề xuất"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Làm mới</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleSaveAll}
