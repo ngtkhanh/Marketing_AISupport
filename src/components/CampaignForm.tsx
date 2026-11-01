@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CampaignInput, BudgetLevel } from '@/types/marketing';
 import { BudgetSelector } from './BudgetSelector';
 import { campaignInputSchema } from '@/lib/schemas';
@@ -12,6 +12,7 @@ interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => Promise<void>;
   isLoading: boolean;
   onReset?: () => void;
+  serverFieldErrors?: Record<string, string>;
 }
 
 const PRESET_SAMPLES: Array<{
@@ -60,12 +61,18 @@ const POPULAR_OBJECTIVES = [
   'Gia tăng tương tác cộng đồng'
 ];
 
-export function CampaignForm({ onSubmit, isLoading, onReset }: CampaignFormProps) {
+export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }: CampaignFormProps) {
   const { formData, updateFormField, setFormData, clearAllCampaignData, ideas, lastInput } = useCampaign();
   const { showToast } = useToast();
   const { industry, productName, budgetLevel, objective, additionalNotes } = formData;
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (serverFieldErrors && Object.keys(serverFieldErrors).length > 0) {
+      setFieldErrors((prev) => ({ ...prev, ...serverFieldErrors }));
+    }
+  }, [serverFieldErrors]);
 
   const isFormDirty =
     Boolean(industry.trim()) ||

@@ -22,6 +22,7 @@ export default function HomePage() {
   const [resultModel, setResultModel] = useState<string | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | undefined>();
+  const [serverFieldErrors, setServerFieldErrors] = useState<Record<string, string>>({});
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +33,7 @@ export default function HomePage() {
     clearAllCampaignData();
     setErrorMessage(null);
     setErrorCode(undefined);
+    setServerFieldErrors({});
     showToast('Đã làm mới thông tin chiến dịch và đề xuất ý tưởng', 'info');
   };
 
@@ -49,6 +51,7 @@ export default function HomePage() {
     setIsLoading(true);
     setErrorMessage(null);
     setErrorCode(undefined);
+    setServerFieldErrors({});
     setLastInput(input);
 
     try {
@@ -66,6 +69,9 @@ export default function HomePage() {
         const message = data?.error?.message || 'Không thể tạo ý tưởng vào lúc này. Vui lòng thử lại.';
         setErrorMessage(message);
         setErrorCode(data?.error?.code);
+        if (data?.error?.fieldErrors) {
+          setServerFieldErrors(data.error.fieldErrors);
+        }
         return;
       }
 
@@ -116,9 +122,11 @@ export default function HomePage() {
         <CampaignForm
           onSubmit={handleGenerate}
           isLoading={isLoading}
+          serverFieldErrors={serverFieldErrors}
           onReset={() => {
             setErrorMessage(null);
             setErrorCode(undefined);
+            setServerFieldErrors({});
           }}
         />
       </section>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { campaignInputSchema } from '@/lib/schemas';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { generateMarketingIdeasWithGemini } from '@/lib/ai/gemini';
+import { validateCampaignInputSemantics } from '@/lib/ai/guardrail';
 import { getFallbackMarketingIdeas } from '@/lib/ai/mock-data';
 import { CampaignInput } from '@/types/marketing';
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Server-side Validation bằng Zod
+    // 3. Server-side Validation bằng Zod (Lớp 1: Heuristic & Pattern Rules)
     const validationResult = campaignInputSchema.safeParse(rawBody);
     if (!validationResult.success) {
       const fieldErrors: Record<string, string> = {};
@@ -56,12 +57,16 @@ export async function POST(req: NextRequest) {
         fieldErrors[fieldName] = err.message;
       });
 
+      const firstFriendlyMsg =
+        Object.values(fieldErrors)[0] ||
+        'Thông tin chiến dịch có vẻ chưa đầy đủ. Bạn vui lòng kiểm tra lại các ô nhập liệu nhé!';
+
       return NextResponse.json(
         {
           ok: false,
           error: {
             code: 'VALIDATION_ERROR',
-            message: 'Dữ liệu đầu vào không hợp lệ.',
+            message: firstFriendlyMsg,
             fieldErrors
           }
         },
@@ -70,6 +75,32 @@ export async function POST(req: NextRequest) {
     }
 
     const campaignInput: CampaignInput = validationResult.data;
+
+    // 3.5. Cổng kiểm tra ngữ nghĩa bằng model siêu nhẹ (Lớp 2: Semantic Guardrail)
+    // Chặn rác "có vẻ hợp lệ" như "asdf quảng cáo lung tung", prompt injection "hãy bỏ qua hướng dẫn..."
+    const guardrailCheck = await validateCampaignInputSemantics(campaignInput);
+    if (!guardrailCheck.isValid) {
+      const friendlyMessage =
+        guardrailCheck.friendlyMessage ||
+        'Thông tin chiến dịch có vẻ chưa rõ nghĩa. Bạn thử mô tả cụ thể sản phẩm hoặc dịch vụ thực tế nhé (VD: Trà sữa matcha đóng chai)!';
+
+      const fieldErrors: Record<string, string> = {};
+      if (guardrailCheck.field) {
+        fieldErrors[guardrailCheck.field] = friendlyMessage;
+      }
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: friendlyMessage,
+            fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined
+          }
+        },
+        { status: 400 }
+      );
+    }
 
     // 4. Xử lý Cờ mô phỏng lỗi (chỉ hoạt động khi NODE_ENV !== 'production' để test TC05, TC07)
     const simulateError = process.env.AI_SIMULATE_ERROR;
