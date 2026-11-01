@@ -59,12 +59,44 @@ export async function validateCampaignInputSemantics(
     return { isValid: true };
   }
 
-  // Danh sách model ưu tiên cho Guardrail (siêu rẻ & phản hồi nhanh < 1s)
+  // 1. Fast Pattern Check (0 Token, 0ms): Bắt ngay các mẫu Prompt Injection và từ khóa spam rõ ràng
+  const combined = `${input.productName} ${input.objective} ${input.industry} ${input.additionalNotes || ''}`.toLowerCase();
+
+  const injectionPatterns = [
+    'bỏ qua hướng dẫn',
+    'bỏ qua các chỉ dẫn',
+    'ignore instructions',
+    'viết thơ',
+    'viết code',
+    'kể chuyện ma'
+  ];
+  for (const p of injectionPatterns) {
+    if (combined.includes(p)) {
+      return {
+        isValid: false,
+        field: 'objective',
+        friendlyMessage:
+          'Mục tiêu chiến dịch có vẻ chưa liên quan đến tiếp thị sản phẩm, bạn thử nêu mục tiêu cụ thể nhé (VD: Thu hút khách hàng mới, Tăng nhận diện thương hiệu...)!'
+      };
+    }
+  }
+
+  const obviousSpam = ['quảng cáo lung tung', 'bán không khí', 'đồ linh tinh', 'mua vui qua ngày'];
+  for (const s of obviousSpam) {
+    if (combined.includes(s)) {
+      return {
+        isValid: false,
+        field: 'productName',
+        friendlyMessage:
+          'Tên sản phẩm có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé (VD: Trà sữa matcha đóng chai, Áo thun unisex)!'
+      };
+    }
+  }
+
+  // 2. Danh sách model cho Guardrail: Ưu tiên gemini-3.5-flash-lite (siêu nhẹ, phản hồi nhanh < 500ms)
   const candidateGuardModels = [
     process.env.GEMINI_GUARD_MODEL,
-    'gemini-1.5-flash-8b',
-    'gemini-2.0-flash-lite',
-    'gemini-1.5-flash',
+    'gemini-3.5-flash-lite',
     process.env.GEMINI_MODEL,
     'gemini-3-flash-preview'
   ].filter((m): m is string => Boolean(m && m.trim().length > 0));

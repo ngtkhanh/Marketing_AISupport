@@ -115,13 +115,13 @@ export async function generateMarketingIdeasWithGemini(
     };
   }
 
-  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
-  // Chuỗi failover dự phòng nếu model chính gặp 503 High Demand hoặc 404
+  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  // Chuỗi failover dự phòng nếu model chính gặp 503 High Demand hoặc 404/429 Quota Exceeded
   const candidateModels = [
     preferredModel,
+    'gemini-3.5-flash-lite',
     'gemini-3-flash-preview',
-    'gemini-3.8-flash',
-    'gemini-flash-latest'
+    'gemini-3.8-flash'
   ].filter((v, i, a) => a.indexOf(v) === i);
 
   const ai = new GoogleGenAI({ apiKey });
