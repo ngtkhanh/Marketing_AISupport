@@ -108,7 +108,7 @@ export default function HomePage() {
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
           Đề Xuất Ý Tưởng Marketing <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+          <span className="text-indigo-600">
             Khả Thi Theo Từng Mức Ngân Sách
           </span>
         </h1>
