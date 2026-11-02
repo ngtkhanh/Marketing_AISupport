@@ -5,12 +5,15 @@ import { CampaignInput } from '@/types/marketing';
 import { CampaignForm } from '@/components/CampaignForm';
 import { IdeaCard } from '@/components/IdeaCard';
 import { SkeletonIdeaList } from '@/components/Skeleton';
+import { AILoadingStatus } from '@/components/AILoadingStatus';
+import { IdeaJumpNav } from '@/components/IdeaJumpNav';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { SourceBadge } from '@/components/SourceBadge';
-import { Sparkles, Compass, Bookmark, BookmarkCheck, RotateCcw } from 'lucide-react';
+import { Sparkles, Compass, Bookmark, BookmarkCheck, RotateCcw, FileDown, Printer } from 'lucide-react';
 import { useCampaign } from '@/context/CampaignContext';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useToast } from '@/components/Toast';
+import { generateCampaignMarkdown, downloadMarkdownFile, printCampaignReport } from '@/lib/export-report';
 
 export default function HomePage() {
   const { ideas, setIdeas, lastInput, setLastInput, clearAllCampaignData } = useCampaign();
@@ -45,6 +48,24 @@ export default function HomePage() {
     } else {
       showToast(res.message, 'error');
     }
+  };
+
+  const handleExportMarkdown = () => {
+    if (!lastInput || ideas.length === 0) return;
+    const md = generateCampaignMarkdown(ideas, lastInput);
+    const sanitizedName = lastInput.productName
+      .toLowerCase()
+      .replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+    const filename = `ke-hoach-marketing-${sanitizedName || 'chien-dich'}.md`;
+    downloadMarkdownFile(filename, md);
+    showToast('Đã tải xuống file báo cáo Markdown (.md)', 'success');
+  };
+
+  const handlePrint = () => {
+    if (ideas.length === 0) return;
+    printCampaignReport();
   };
 
   const handleGenerate = async (input: CampaignInput) => {
@@ -101,7 +122,7 @@ export default function HomePage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Hero section */}
-      <section className="text-center max-w-2xl mx-auto space-y-3 pt-2 pb-2">
+      <section className="text-center max-w-2xl mx-auto space-y-3 pt-2 pb-2 print:hidden">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Giải pháp Marketing Đột Phá Bằng Trí Tuệ Nhân Tạo</span>
@@ -118,7 +139,7 @@ export default function HomePage() {
       </section>
 
       {/* Form nhập thông tin chiến dịch (Feature 1) */}
-      <section>
+      <section className="print:hidden">
         <CampaignForm
           onSubmit={handleGenerate}
           isLoading={isLoading}
@@ -133,7 +154,7 @@ export default function HomePage() {
 
       {/* Vùng hiển thị lỗi (nếu có) */}
       {errorMessage && (
-        <section>
+        <section className="print:hidden">
           <ErrorBanner message={errorMessage} code={errorCode} onRetry={handleRetry} />
         </section>
       )}
@@ -141,7 +162,8 @@ export default function HomePage() {
       {/* Vùng kết quả (Feature 2 & 3) */}
       <div ref={resultsRef}>
         {isLoading && (
-          <section className="space-y-4">
+          <section className="space-y-5">
+            <AILoadingStatus />
             <SkeletonIdeaList />
           </section>
         )}
@@ -163,8 +185,28 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
                 <button
                   type="button"
+                  onClick={handleExportMarkdown}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow cursor-pointer active:scale-95 print:hidden"
+                  title="Tải toàn bộ 05 ý tưởng chiến dịch dưới dạng file Markdown (.md)"
+                >
+                  <FileDown className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Tải .MD</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow cursor-pointer active:scale-95 print:hidden"
+                  title="In hoặc Lưu toàn bộ 05 ý tưởng thành file PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-600" />
+                  <span>In / PDF</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleResetAll}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 shadow-sm cursor-pointer active:scale-95"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 shadow-sm cursor-pointer active:scale-95 print:hidden"
                   title="Làm mới form và xóa toàn bộ ý tưởng đề xuất"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -175,7 +217,7 @@ export default function HomePage() {
                   type="button"
                   onClick={handleSaveAll}
                   disabled={allSaved}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all print:hidden ${
                     allSaved
                       ? 'bg-amber-50 text-amber-700 border border-amber-200 cursor-default'
                       : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-pointer shadow-sm hover:shadow'
@@ -196,7 +238,9 @@ export default function HomePage() {
                 </button>
 
                 {/* Badge nguồn AI thật / Demo dự phòng */}
-                <SourceBadge source={resultSource} model={resultModel} />
+                <div className="print:hidden">
+                  <SourceBadge source={resultSource} model={resultModel} />
+                </div>
               </div>
             </div>
 
@@ -209,6 +253,9 @@ export default function HomePage() {
           </section>
         )}
       </div>
+
+      {/* Thanh điều hướng cuộn nhanh giữa các ý tưởng */}
+      <IdeaJumpNav ideas={ideas} />
     </div>
   );
 }

@@ -48,7 +48,10 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
   };
 
   return (
-    <article className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow relative">
+    <article
+      id={`idea-card-${index + 1}`}
+      className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow relative break-inside-avoid print:shadow-none print:border-slate-300"
+    >
       {/* Header card */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
         <div>
