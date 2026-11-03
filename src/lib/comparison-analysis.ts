@@ -1,4 +1,4 @@
-import { MarketingIdea, CampaignInput, StrategyEvaluation, ShortlistEntry } from '@/types/marketing';
+import { MarketingIdea, CampaignInput, StrategyEvaluation, ShortlistEntry, AICMOVerdict } from '@/types/marketing';
 
 /**
  * Phân tích định tính minh bạch cho từng phương án chiến lược.
@@ -101,12 +101,23 @@ export function evaluateStrategy(
 /**
  * Xuất bảng so sánh dạng Markdown để gửi qua Slack, Zalo, Notion hoặc email
  */
-export function generateComparisonMarkdown(entries: ShortlistEntry[]): string {
+export function generateComparisonMarkdown(
+  entries: ShortlistEntry[],
+  cmoVerdict?: AICMOVerdict
+): string {
   if (entries.length === 0) return '';
 
   const dateStr = new Date().toLocaleDateString('vi-VN');
   let md = `# 📊 BẢNG SO SÁNH PHƯƠNG ÁN CHIẾN LƯỢC MARKETING\n`;
   md += `*Ngày xuất báo cáo: ${dateStr} | Số lượng so sánh: ${entries.length} chiến dịch*\n\n`;
+
+  // Thêm nhận định từ AI CMO nếu có
+  if (cmoVerdict) {
+    md += `## 👑 Phán Quyết & Tư Vấn Của AI CMO\n`;
+    md += `> **Phương án khuyên chọn:** **${cmoVerdict.recommendedWinner.title} (v${cmoVerdict.recommendedWinner.version})**\n`;
+    md += `> **Lý do lựa chọn:** ${cmoVerdict.recommendedWinner.verdictReason}\n\n`;
+    md += `> 💡 **Mẹo chiến lược kết hợp (Hybrid Strategy):** ${cmoVerdict.hybridStrategyTip}\n\n`;
+  }
 
   // Bảng tóm tắt song song
   md += `| Tiêu chí | ${entries.map((e) => `**${e.idea.title}** (v${e.idea.version || 1}) ${e.isPrimary ? '⭐ [ƯU TIÊN]' : ''}`).join(' | ')} |\n`;

@@ -187,6 +187,49 @@ export const refineAIOutputSchema = z.object({
   changesSummary: z.array(z.string().min(2)).min(1, 'Cần ít nhất 1 tóm tắt thay đổi')
 });
 
+export const compareStrategiesRequestSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        id: z.string(),
+        context: z.object({
+          industry: z.string(),
+          productName: z.string(),
+          budgetLevel: z.enum(['low', 'medium', 'high']),
+          objective: z.string()
+        }),
+        idea: rawAIIdeaSchema.extend({
+          id: z.string(),
+          version: z.number().optional()
+        })
+      })
+    )
+    .min(2, 'Cần ít nhất 2 chiến dịch để so sánh')
+    .max(3, 'Chỉ so sánh tối đa 3 chiến dịch')
+});
+
+export const compareStrategiesOutputSchema = z.object({
+  headToHeadAnalysis: z.array(
+    z.object({
+      campaignId: z.string(),
+      title: z.string(),
+      version: z.number(),
+      keyAdvantage: z.string().min(5),
+      biggestTradeOff: z.string().min(5),
+      bestSuitedFor: z.string().min(5)
+    })
+  ),
+  recommendedWinner: z.object({
+    campaignId: z.string(),
+    title: z.string(),
+    version: z.number(),
+    verdictReason: z.string().min(10)
+  }),
+  hybridStrategyTip: z.string().min(10)
+});
+
 export type ValidatedCampaignInput = z.infer<typeof campaignInputSchema>;
 export type ValidatedRefineIdeaRequest = z.infer<typeof refineIdeaRequestSchema>;
 export type ValidatedRefineAIOutput = z.infer<typeof refineAIOutputSchema>;
+export type ValidatedCompareStrategiesRequest = z.infer<typeof compareStrategiesRequestSchema>;
+export type ValidatedCompareStrategiesOutput = z.infer<typeof compareStrategiesOutputSchema>;

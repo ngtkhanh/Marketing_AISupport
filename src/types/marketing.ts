@@ -104,3 +104,40 @@ export interface ShortlistEntry {
   evaluation?: StrategyEvaluation;
 }
 
+export interface AICMOVerdict {
+  headToHeadAnalysis: {
+    campaignId: string;
+    title: string;
+    version: number;
+    keyAdvantage: string;
+    biggestTradeOff: string;
+    bestSuitedFor: string;
+  }[];
+  recommendedWinner: {
+    campaignId: string;
+    title: string;
+    version: number;
+    verdictReason: string;
+  };
+  hybridStrategyTip: string;
+}
+
+export interface CompareStrategiesRequest {
+  entries: ShortlistEntry[];
+}
+
+export interface CompareStrategiesResponse {
+  ok: true;
+  source: 'ai' | 'mock';
+  model?: string;
+  verdict: AICMOVerdict;
+}
+
+export interface CompareStrategiesError {
+  ok: false;
+  error: {
+    code: 'VALIDATION_ERROR' | 'RATE_LIMITED' | 'CONFIG_ERROR' | 'SAFETY_BLOCKED' | 'INTERNAL_ERROR';
+    message: string;
+  };
+}
+

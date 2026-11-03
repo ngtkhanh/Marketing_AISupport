@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useShortlist } from '@/hooks/useShortlist';
 import { ShortlistItem } from '@/components/ShortlistItem';
@@ -44,7 +44,10 @@ export default function ShortlistPage() {
     setIsComparisonOpen(true);
   };
 
-  const selectedEntries = shortlist.filter((e) => selectedIds.includes(e.id));
+  const selectedEntries = useMemo(
+    () => shortlist.filter((e) => selectedIds.includes(e.id)),
+    [shortlist, selectedIds]
+  );
 
   const handleCopyAll = async () => {
     if (shortlist.length === 0) return;
