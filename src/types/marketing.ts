@@ -85,10 +85,22 @@ export interface GenerateError {
   };
 }
 
+export interface StrategyEvaluation {
+  complexityLevel: 'Thấp' | 'Trung bình' | 'Cao';
+  complexityReason: string;
+  requiredResources: string[];
+  keyRisks: string[];
+  mitigationTips: string[];
+  goalAlignmentScoreRationale: string;
+}
+
 export interface ShortlistEntry {
-  id: string; // = idea.id
+  id: string; // = `${idea.id}_v${idea.version || 1}`
   savedAt: string; // ISO timestamp
   context: Pick<CampaignInput, 'industry' | 'productName' | 'budgetLevel' | 'objective'>;
   idea: MarketingIdea;
+  isPrimary?: boolean; // Đánh dấu phương án ưu tiên triển khai
+  userNotes?: string; // Ghi chú cá nhân của người dùng
+  evaluation?: StrategyEvaluation;
 }
 

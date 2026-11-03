@@ -4,15 +4,47 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useShortlist } from '@/hooks/useShortlist';
 import { ShortlistItem } from '@/components/ShortlistItem';
-import { Bookmark, Copy, Trash2, ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { ComparisonBar } from '@/components/ComparisonBar';
+import { StrategyComparisonModal } from '@/components/StrategyComparisonModal';
+import { Bookmark, Copy, Trash2, ArrowLeft, Check, Sparkles, Scale } from 'lucide-react';
 import { formatIdeaSummary, copyToClipboard } from '@/lib/format-summary';
 import { useToast } from '@/components/Toast';
 
 export default function ShortlistPage() {
-  const { shortlist, count, isLoaded, removeIdea, clearAll } = useShortlist();
+  const { shortlist, count, isLoaded, removeIdea, clearAll, setPrimaryIdea, updateUserNotes } = useShortlist();
   const { showToast } = useToast();
   const [copiedAll, setCopiedAll] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Trạng thái chọn 2–3 phương án để so sánh (Mục 2.2)
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+
+  const handleToggleSelect = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds((prev) => prev.filter((item) => item !== id));
+    } else {
+      if (selectedIds.length >= 3) {
+        showToast('Bạn chỉ có thể chọn tối đa 3 chiến dịch để so sánh.', 'info');
+        return;
+      }
+      setSelectedIds((prev) => [...prev, id]);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+  };
+
+  const handleOpenComparison = () => {
+    if (selectedIds.length < 2) {
+      showToast('Vui lòng chọn ít nhất 2 chiến dịch để mở bảng so sánh.', 'info');
+      return;
+    }
+    setIsComparisonOpen(true);
+  };
+
+  const selectedEntries = shortlist.filter((e) => selectedIds.includes(e.id));
 
   const handleCopyAll = async () => {
     if (shortlist.length === 0) return;
@@ -144,12 +176,36 @@ export default function ShortlistPage() {
           </div>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-5 pb-20">
           {shortlist.map((entry) => (
-            <ShortlistItem key={entry.id} entry={entry} onRemove={removeIdea} />
+            <ShortlistItem
+              key={entry.id}
+              entry={entry}
+              onRemove={removeIdea}
+              isSelected={selectedIds.includes(entry.id)}
+              onToggleSelect={handleToggleSelect}
+              disableSelect={selectedIds.length >= 3}
+            />
           ))}
         </div>
       )}
+
+      {/* Thanh công cụ so sánh nổi (Feature 2.2) */}
+      <ComparisonBar
+        selectedCount={selectedIds.length}
+        maxSelectable={3}
+        onOpenComparison={handleOpenComparison}
+        onClearSelection={handleClearSelection}
+      />
+
+      {/* Modal Ma trận So sánh Chiến lược Đa tiêu chí (Feature 2.2) */}
+      <StrategyComparisonModal
+        isOpen={isComparisonOpen}
+        onClose={() => setIsComparisonOpen(false)}
+        entries={selectedEntries}
+        onTogglePrimary={setPrimaryIdea}
+        onUpdateNotes={updateUserNotes}
+      />
     </div>
   );
 }

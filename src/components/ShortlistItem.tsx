@@ -3,16 +3,25 @@
 import React, { useState } from 'react';
 import { ShortlistEntry } from '@/types/marketing';
 import { WeeklyTimeline } from './WeeklyTimeline';
-import { Copy, Trash2, Check, DollarSign, Calendar, AlertCircle } from 'lucide-react';
+import { Copy, Trash2, Check, DollarSign, Calendar, AlertCircle, Star, Edit3 } from 'lucide-react';
 import { formatIdeaSummary, copyToClipboard } from '@/lib/format-summary';
 import { useToast } from './Toast';
 
 interface ShortlistItemProps {
   entry: ShortlistEntry;
   onRemove: (id: string) => void;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
+  disableSelect?: boolean;
 }
 
-export function ShortlistItem({ entry, onRemove }: ShortlistItemProps) {
+export function ShortlistItem({
+  entry,
+  onRemove,
+  isSelected = false,
+  onToggleSelect,
+  disableSelect = false
+}: ShortlistItemProps) {
   const { idea, context, savedAt } = entry;
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -46,20 +55,53 @@ export function ShortlistItem({ entry, onRemove }: ShortlistItemProps) {
   };
 
   return (
-    <article className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-sm relative space-y-4">
-      {/* Context Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md">
-            {context.productName}
-          </span>
-          <span className="text-slate-500">({context.industry})</span>
-          <span className="text-indigo-700 bg-indigo-50 font-semibold px-2 py-0.5 rounded-md border border-indigo-200">
-            Ngân sách: {context.budgetLevel === 'low' ? 'Thấp' : context.budgetLevel === 'medium' ? 'Trung bình' : 'Cao'}
-          </span>
-          <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 font-bold px-2 py-0.5 rounded-md border border-purple-200">
-            <span>Phiên bản v{version}</span>
-          </span>
+    <article
+      className={`p-6 rounded-2xl bg-white border transition-all relative space-y-4 shadow-xs ${
+        entry.isPrimary
+          ? 'border-emerald-400 ring-2 ring-emerald-400/25 shadow-md'
+          : isSelected
+          ? 'border-indigo-400 ring-2 ring-indigo-400/20 shadow-md'
+          : 'border-slate-200/90'
+      }`}
+    >
+      {/* Context Badge & Selection Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Checkbox chọn so sánh */}
+          {onToggleSelect && (
+            <label className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 hover:bg-indigo-50/60 hover:border-indigo-200 transition-colors cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                disabled={!isSelected && disableSelect}
+                onChange={() => onToggleSelect(entry.id)}
+                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-30 cursor-pointer"
+              />
+              <span className={`text-xs font-semibold ${isSelected ? 'text-indigo-700' : 'text-slate-700'}`}>
+                {isSelected ? 'Đã chọn so sánh' : 'Chọn so sánh'}
+              </span>
+            </label>
+          )}
+
+          {entry.isPrimary && (
+            <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-600 text-white shadow-xs">
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span>Ưu tiên số 1</span>
+            </span>
+          )}
+
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
+              {context.productName}
+            </span>
+            <span className="text-slate-500">({context.industry})</span>
+            <span className="text-indigo-700 bg-indigo-50 font-semibold px-2 py-0.5 rounded-md border border-indigo-200">
+              Ngân sách: {context.budgetLevel === 'low' ? 'Thấp' : context.budgetLevel === 'medium' ? 'Trung bình' : 'Cao'}
+            </span>
+            <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 font-bold px-2 py-0.5 rounded-md border border-purple-200">
+              <span>Phiên bản v{version}</span>
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -145,6 +187,17 @@ export function ShortlistItem({ entry, onRemove }: ShortlistItemProps) {
         <p className="font-semibold text-slate-800 text-xs mb-1 uppercase tracking-wider">Nội dung chiến lược cốt lõi:</p>
         <p>{idea.mainContent}</p>
       </div>
+
+      {/* Personal Notes (Feature 2.2) */}
+      {entry.userNotes && (
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-950">
+          <Edit3 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <span className="font-bold text-amber-900">Ghi chú cá nhân: </span>
+            <span className="italic">{entry.userNotes}</span>
+          </div>
+        </div>
+      )}
 
       {/* Timeline */}
       <WeeklyTimeline timeline={idea.timeline} />

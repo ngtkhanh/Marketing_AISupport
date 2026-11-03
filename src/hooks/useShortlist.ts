@@ -197,6 +197,31 @@ export function useShortlist() {
     [shortlist, persist]
   );
 
+  // Gắn nhãn hoặc đổi phương án ưu tiên triển khai (1 phương án duy nhất được ưu tiên)
+  const setPrimaryIdea = useCallback(
+    (entryId: string): boolean => {
+      const target = shortlist.find((item) => item.id === entryId);
+      const willBePrimary = !target?.isPrimary;
+      const newList = shortlist.map((item) => ({
+        ...item,
+        isPrimary: item.id === entryId ? willBePrimary : false
+      }));
+      return persist(newList);
+    },
+    [shortlist, persist]
+  );
+
+  // Cập nhật ghi chú cá nhân của người dùng cho 1 phương án
+  const updateUserNotes = useCallback(
+    (entryId: string, notes: string): boolean => {
+      const newList = shortlist.map((item) =>
+        item.id === entryId ? { ...item, userNotes: notes } : item
+      );
+      return persist(newList);
+    },
+    [shortlist, persist]
+  );
+
   // Xóa toàn bộ
   const clearAll = useCallback((): boolean => {
     return persist([]);
@@ -209,6 +234,8 @@ export function useShortlist() {
     isSaved,
     saveIdea,
     saveMultipleIdeas,
+    setPrimaryIdea,
+    updateUserNotes,
     removeIdea,
     clearAll
   };
