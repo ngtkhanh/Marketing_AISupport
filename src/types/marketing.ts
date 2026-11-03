@@ -14,6 +14,23 @@ export interface WeeklyPlan {
   activities: string[]; // 2-4 hoạt động ngắn, khả thi
 }
 
+export interface RefinementHistoryEntry {
+  version: number;
+  refinedAt: string;
+  instruction: string;
+  changeReason: string;
+  changesSummary: string[];
+  previousIdea: {
+    title: string;
+    tagline: string;
+    channels: string[];
+    mainContent: string;
+    estimatedBudget: string;
+    targetAudience: string;
+    timeline: WeeklyPlan[];
+  };
+}
+
 export interface MarketingIdea {
   id: string; // Server sinh UUID
   title: string; // Tên chiến dịch
@@ -23,6 +40,33 @@ export interface MarketingIdea {
   estimatedBudget: string; // Số tiền ước tính nằm trong khoảng
   targetAudience: string; // Đối tượng khách hàng mục tiêu
   timeline: WeeklyPlan[]; // Đúng 4 tuần tuần tự
+  version?: number; // Phiên bản (1, 2, 3...)
+  refinementHistory?: RefinementHistoryEntry[]; // Lịch sử các lần tinh chỉnh
+}
+
+export interface RefineIdeaRequest {
+  campaignId: string;
+  currentIdea: MarketingIdea;
+  context: Pick<CampaignInput, 'industry' | 'productName' | 'budgetLevel' | 'objective'>;
+  instruction: string;
+}
+
+export interface RefineIdeaResponse {
+  ok: true;
+  source: 'ai' | 'mock';
+  model?: string;
+  refinedIdea: MarketingIdea;
+  changeReason: string;
+  changesSummary: string[];
+}
+
+export interface RefineIdeaError {
+  ok: false;
+  error: {
+    code: 'VALIDATION_ERROR' | 'RATE_LIMITED' | 'CONFIG_ERROR' | 'SAFETY_BLOCKED' | 'INTERNAL_ERROR';
+    message: string;
+    fieldErrors?: Record<string, string>;
+  };
 }
 
 export interface GenerateResponse {

@@ -72,3 +72,47 @@ export function validateMarketingOutput(
   };
 }
 
+/**
+ * Kiểm tra logic nghiệp vụ cho 1 ý tưởng đơn lẻ (dùng trong tính năng Tinh chỉnh AI)
+ */
+export function validateSingleIdeaMarketingOutput(
+  idea: MarketingIdea,
+  budgetLevel: 'low' | 'medium' | 'high'
+): ValidationOutputResult {
+  const errors: string[] = [];
+  const config = BUDGET_CONFIGS[budgetLevel];
+
+  // 1. Kiểm tra Timeline 4 tuần
+  if (!Array.isArray(idea.timeline) || idea.timeline.length !== 4) {
+    errors.push(`Ý tưởng "${idea.title}" không đủ 4 tuần timeline.`);
+  } else {
+    idea.timeline.forEach((w, wIdx) => {
+      const expectedWeek = (wIdx + 1) as 1 | 2 | 3 | 4;
+      if (w.week !== expectedWeek) {
+        errors.push(`Có thứ tự tuần không đúng: mong đợi Tuần ${expectedWeek}, nhận Tuần ${w.week}.`);
+      }
+      if (!w.activities || w.activities.length === 0) {
+        errors.push(`Tuần ${w.week} không có hoạt động nào.`);
+      }
+    });
+  }
+
+  // 2. Kiểm tra kênh bị cấm theo ngân sách
+  if (config.forbiddenChannels.length > 0) {
+    const allText = `${idea.channels.join(' ')} ${idea.mainContent} ${idea.title}`.toLowerCase();
+    for (const forbidden of config.forbiddenChannels) {
+      if (allText.includes(forbidden.toLowerCase())) {
+        errors.push(
+          `Ý tưởng chứa kênh/hoạt động "${forbidden}" bị cấm đối với mức ngân sách ${config.label}.`
+        );
+        break;
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}
+

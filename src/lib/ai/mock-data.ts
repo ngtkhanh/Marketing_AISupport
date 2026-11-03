@@ -729,3 +729,101 @@ export function getFallbackMarketingIdeas(input: CampaignInput): MarketingIdea[]
   ];
 }
 
+/**
+ * Sinh phương án tinh chỉnh dự phòng khi AI gặp sự cố hạ tầng hoặc môi trường dev giả lập
+ */
+export function getFallbackRefinedIdea(
+  currentIdea: MarketingIdea,
+  instruction: string
+): {
+  refinedIdea: MarketingIdea;
+  changeReason: string;
+  changesSummary: string[];
+} {
+  const lower = instruction.toLowerCase();
+  const refined = JSON.parse(JSON.stringify(currentIdea)) as MarketingIdea;
+  const changesSummary: string[] = [];
+
+  let reason = 'Đã cập nhật chiến dịch theo yêu cầu tinh chỉnh của bạn.';
+
+  if (lower.includes('ngân sách') || lower.includes('chi phí') || lower.includes('giảm') || lower.includes('tiền')) {
+    refined.estimatedBudget = '9.500.000 VNĐ (Tối ưu tiết kiệm ~40% chi phí)';
+    refined.channels = ['TikTok Organic', 'Facebook Community Seeding', 'Micro-Creator Barter'];
+    refined.targetAudience = 'Nhóm khách hàng mục tiêu cốt lõi có tỷ lệ chuyển đổi tự nhiên cao nhất';
+    refined.mainContent = `${refined.mainContent} (Chiến lược được tinh gọn chi phí tối đa: cắt bỏ toàn bộ quảng cáo trả phí đắt đỏ, tập trung 100% vào nội dung lan tỏa tự nhiên và mini-contest tặng quà trải nghiệm).`;
+    refined.timeline = [
+      {
+        week: 1,
+        title: 'Chuẩn bị sản phẩm mẫu & Kịch bản tự quay',
+        activities: [
+          'Tự sản xuất 5 video ngắn bằng điện thoại chia sẻ câu chuyện sản phẩm',
+          'Gửi 10 set quà trải nghiệm cho micro-creator dạng barter không tốn phí booking'
+        ]
+      },
+      {
+        week: 2,
+        title: 'Lan tỏa cộng đồng & Mini-contest tiết kiệm',
+        activities: [
+          'Seeding bài viết trải nghiệm vào 10 hội nhóm liên quan',
+          'Tổ chức mini-game nhỏ tặng voucher giảm giá trực tiếp'
+        ]
+      },
+      {
+        week: 3,
+        title: 'Tận dụng UGC & Tương tác organic',
+        activities: [
+          'Đăng lại (repost) các video review chân thực của khách hàng',
+          'Livestream tư vấn và chốt đơn ưu đãi giới hạn'
+        ]
+      },
+      {
+        week: 4,
+        title: 'Tổng kết & Tái đầu tư từ doanh thu',
+        activities: [
+          'Thống kê đơn hàng và tỷ lệ chuyển đổi từ các kênh 0 đồng',
+          'Tri ân khách hàng và trích lợi nhuận xoay vòng cho đợt tiếp theo'
+        ]
+      }
+    ];
+    changesSummary.push('Cắt giảm ngân sách xuống mức tiết kiệm (~9.5 triệu VNĐ).');
+    changesSummary.push('Đồng bộ chuyển kênh sang Organic Social & Barter quà tặng.');
+    changesSummary.push('Tái cấu trúc timeline 4 tuần sang các hoạt động tinh gọn không tốn phí media.');
+    reason = 'Khi giảm ngân sách, toàn bộ Kênh triển khai, Nội dung và Timeline 4 tuần đã được đồng bộ chuyển sang mô hình Lean Marketing (tiết kiệm chi phí, ưu tiên chuyển đổi nhanh).';
+  }
+
+  if (lower.includes('tiktok') || lower.includes('reels') || lower.includes('video') || lower.includes('kênh')) {
+    const existing = new Set(refined.channels);
+    if (!existing.has('TikTok Organic & Creator Barter')) {
+      refined.channels = ['TikTok Organic & Creator Barter', 'CapCut Template', ...refined.channels.slice(0, 2)];
+    }
+    refined.timeline[1].activities[0] = 'Đẩy mạnh chuỗi video ngắn ngắn 15s bắt trend và CapCut template trên TikTok.';
+    changesSummary.push('Bổ sung TikTok làm kênh phân phối chính, tích hợp kịch bản video ngắn và CapCut template.');
+  }
+
+  if (lower.includes('slogan') || lower.includes('thông điệp') || lower.includes('sáng tạo') || lower.includes('trend')) {
+    refined.tagline = `${currentIdea.tagline} – Chất riêng dẫn lối thành công`;
+    changesSummary.push(`Làm mới slogan mang phong cách bắt trend: "${refined.tagline}"`);
+  }
+
+  if (lower.includes('sinh viên') || lower.includes('gen z') || lower.includes('trẻ') || lower.includes('khách hàng') || lower.includes('tệp')) {
+    refined.targetAudience = 'Sinh viên và người trẻ Gen Z (18–24 tuổi) thích trải nghiệm mới, săn deal độc lạ và chuộng nội dung ngắn';
+    changesSummary.push('Điều chỉnh tệp khách hàng mục tiêu sang giới trẻ Gen Z và sinh viên.');
+  }
+
+  if (lower.includes('đơn giản') || lower.includes('dễ') || lower.includes('nhanh')) {
+    refined.mainContent = `${refined.mainContent} Quy trình thực thi được rút gọn thành 3 bước tinh gọn, loại bỏ các khâu sản xuất cồng kềnh.`;
+    changesSummary.push('Đơn giản hóa các hoạt động triển khai, tập trung vào tính khả thi nhanh.');
+  }
+
+  if (changesSummary.length === 0) {
+    refined.tagline = `Đột phá cùng ${currentIdea.title}`;
+    changesSummary.push(`Tinh chỉnh nội dung theo chỉ dẫn: "${instruction}"`);
+  }
+
+  return {
+    refinedIdea: refined,
+    changeReason: reason,
+    changesSummary
+  };
+}
+

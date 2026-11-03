@@ -147,4 +147,46 @@ export const rawAIResponseSchema = z.object({
   ideas: z.array(rawAIIdeaSchema).length(5, 'Phải có đúng 5 ý tưởng chiến dịch')
 });
 
+export const refineIdeaRequestSchema = z.object({
+  campaignId: z.string().min(1, 'Mã chiến dịch không được để trống'),
+  currentIdea: z.object({
+    id: z.string(),
+    title: z.string().min(2),
+    tagline: z.string().min(2),
+    channels: z.array(z.string()).min(1),
+    mainContent: z.string().min(10),
+    estimatedBudget: z.string().min(2),
+    targetAudience: z.string().min(2),
+    timeline: z.array(weeklyPlanSchema).length(4),
+    version: z.number().optional(),
+    refinementHistory: z.array(z.any()).optional()
+  }),
+  context: z.object({
+    industry: z.string().min(1),
+    productName: z.string().min(1),
+    budgetLevel: z.enum(['low', 'medium', 'high']),
+    objective: z.string().min(1)
+  }),
+  instruction: z
+    .string()
+    .transform(sanitizeString)
+    .refine((val) => val.trim().length >= 3 && val.length <= 300, {
+      message: 'Yêu cầu tinh chỉnh cần từ 3–300 ký tự'
+    })
+    .refine((val) => !hasRepeatedChars(val), {
+      message: 'Yêu cầu tinh chỉnh dường như chứa ký tự lặp bất thường'
+    })
+    .refine((val) => !isGibberish(val), {
+      message: 'Yêu cầu tinh chỉnh có vẻ chưa rõ nghĩa'
+    })
+});
+
+export const refineAIOutputSchema = z.object({
+  refinedIdea: rawAIIdeaSchema,
+  changeReason: z.string().min(5, 'Lý do thay đổi tối thiểu 5 ký tự'),
+  changesSummary: z.array(z.string().min(2)).min(1, 'Cần ít nhất 1 tóm tắt thay đổi')
+});
+
 export type ValidatedCampaignInput = z.infer<typeof campaignInputSchema>;
+export type ValidatedRefineIdeaRequest = z.infer<typeof refineIdeaRequestSchema>;
+export type ValidatedRefineAIOutput = z.infer<typeof refineAIOutputSchema>;

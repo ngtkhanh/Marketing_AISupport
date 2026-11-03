@@ -166,6 +166,19 @@ export function useShortlist() {
     [shortlist, persist]
   );
 
+  // Cập nhật nội dung ý tưởng đã lưu trong Shortlist (khi tinh chỉnh AI)
+  const updateShortlistIdea = useCallback(
+    (updatedIdea: MarketingIdea): boolean => {
+      const exists = shortlist.some((item) => item.id === updatedIdea.id);
+      if (!exists) return false;
+      const newList = shortlist.map((item) =>
+        item.id === updatedIdea.id ? { ...item, idea: updatedIdea } : item
+      );
+      return persist(newList);
+    },
+    [shortlist, persist]
+  );
+
   // Xóa toàn bộ
   const clearAll = useCallback((): boolean => {
     return persist([]);
@@ -178,6 +191,7 @@ export function useShortlist() {
     isSaved,
     saveIdea,
     saveMultipleIdeas,
+    updateShortlistIdea,
     removeIdea,
     clearAll,
   };

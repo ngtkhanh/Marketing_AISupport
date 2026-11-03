@@ -18,6 +18,8 @@ interface CampaignContextType {
   resetForm: () => void;
   ideas: MarketingIdea[];
   setIdeas: React.Dispatch<React.SetStateAction<MarketingIdea[]>>;
+  updateIdea: (updatedIdea: MarketingIdea) => void;
+  revertIdea: (ideaId: string) => void;
   lastInput: CampaignInput | null;
   setLastInput: React.Dispatch<React.SetStateAction<CampaignInput | null>>;
   clearAllCampaignData: () => void;
@@ -93,6 +95,30 @@ export function CampaignProvider({ children }: { children: React.ReactNode }) {
     setFormData(DEFAULT_FORM_DATA);
   }, []);
 
+  const updateIdea = useCallback((updatedIdea: MarketingIdea) => {
+    setIdeas((prev) => prev.map((item) => (item.id === updatedIdea.id ? updatedIdea : item)));
+  }, []);
+
+  const revertIdea = useCallback((ideaId: string) => {
+    setIdeas((prev) =>
+      prev.map((item) => {
+        if (item.id !== ideaId) return item;
+        const history = item.refinementHistory;
+        if (!history || history.length === 0) return item;
+
+        const latest = history[0];
+        const remainingHistory = history.slice(1);
+        const revertedIdea: MarketingIdea = {
+          ...latest.previousIdea,
+          id: item.id,
+          version: Math.max(1, (item.version || 2) - 1),
+          refinementHistory: remainingHistory
+        };
+        return revertedIdea;
+      })
+    );
+  }, []);
+
   const clearAllCampaignData = useCallback(() => {
     setFormData(DEFAULT_FORM_DATA);
     setIdeas([]);
@@ -111,6 +137,8 @@ export function CampaignProvider({ children }: { children: React.ReactNode }) {
         resetForm,
         ideas,
         setIdeas,
+        updateIdea,
+        revertIdea,
         lastInput,
         setLastInput,
         clearAllCampaignData,

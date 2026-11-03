@@ -66,8 +66,13 @@ export function ShortlistItem({ entry, onRemove }: ShortlistItemProps) {
       {/* Main Info */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <h3 className="text-lg sm:text-xl font-bold text-slate-900">{idea.title}</h3>
+            {idea.version && idea.version > 1 && (
+              <span className="text-xs px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
+                v{idea.version}
+              </span>
+            )}
             <div className="flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
               <DollarSign className="w-3.5 h-3.5 -mr-0.5" />
               <span>{idea.estimatedBudget}</span>
