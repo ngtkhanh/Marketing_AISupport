@@ -236,82 +236,22 @@ export function StrategyComparisonModal({
               </button>
             </div>
           ) : (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 border border-indigo-200 shadow-sm space-y-4 animate-in fade-in duration-300">
-              {/* Winner Header Box */}
-              <div className="p-4 rounded-xl bg-white border-2 border-emerald-400 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
-                    <Trophy className="w-5 h-5 text-emerald-700" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">
-                        👑 AI CMO Khuyên Chọn
-                      </span>
-                      <h4 className="text-sm sm:text-base font-bold text-slate-900">
-                        {cmoVerdict.recommendedWinner.title} (v{cmoVerdict.recommendedWinner.version})
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-700 mt-1.5 leading-relaxed font-medium">
-                      {cmoVerdict.recommendedWinner.verdictReason}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onTogglePrimary(cmoVerdict.recommendedWinner.campaignId)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 transition-all shrink-0 self-start sm:self-center cursor-pointer"
-                >
-                  ⭐ Đặt làm Ưu Tiên Triển Khai
-                </button>
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50/60 to-purple-50 border border-purple-200/90 text-xs sm:text-sm text-purple-950 flex items-start gap-3 shadow-xs animate-in fade-in duration-200">
+              <div className="p-2 rounded-xl bg-purple-600 text-white shrink-0 shadow-2xs">
+                <Lightbulb className="w-4 h-4 text-amber-300" />
               </div>
-
-              {/* Head-to-Head Cards */}
-              <div>
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Scale className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Phân tích đánh đổi (Trade-off Analysis) giữa các phương án:</span>
+              <div className="flex-1 space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-purple-950 text-xs uppercase tracking-wider">
+                    💡 Mẹo chiến lược lai (Hybrid Strategy Tip) từ AI CMO
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-200/70 text-purple-900 font-bold">
+                    Phối hợp tối ưu
+                  </span>
+                </div>
+                <p className="text-slate-800 leading-relaxed text-xs sm:text-sm pt-0.5">
+                  {cmoVerdict.hybridStrategyTip}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {cmoVerdict.headToHeadAnalysis.map((item) => (
-                    <div key={item.campaignId} className="p-3 bg-white rounded-xl border border-slate-200 space-y-2 text-xs shadow-2xs">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                        <span className="font-bold text-slate-900 truncate">{item.title}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold">
-                          v{item.version}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-emerald-700 flex items-center gap-1 text-[11px]">
-                          <TrendingUp className="w-3 h-3 text-emerald-600" /> Lợi thế vượt trội:
-                        </span>
-                        <p className="text-slate-700 mt-0.5 leading-snug">{item.keyAdvantage}</p>
-                      </div>
-                      <div>
-                        <span className="font-bold text-amber-700 flex items-center gap-1 text-[11px]">
-                          <Scale className="w-3 h-3 text-amber-600" /> Điểm phải đánh đổi:
-                        </span>
-                        <p className="text-slate-700 mt-0.5 leading-snug">{item.biggestTradeOff}</p>
-                      </div>
-                      <div className="pt-1.5 border-t border-slate-100">
-                        <span className="font-bold text-indigo-700 flex items-center gap-1 text-[11px]">
-                          <Lightbulb className="w-3 h-3 text-indigo-600" /> Doanh nghiệp nên chọn khi:
-                        </span>
-                        <p className="text-slate-600 mt-0.5 italic leading-snug">{item.bestSuitedFor}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Hybrid Strategy Tip */}
-              <div className="p-3.5 rounded-xl bg-purple-50/90 border border-purple-200 text-xs text-purple-950 flex items-start gap-2.5">
-                <Lightbulb className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-purple-900">Mẹo chiến lược lai (Hybrid Strategy Tip): </span>
-                  <span className="leading-relaxed">{cmoVerdict.hybridStrategyTip}</span>
-                </div>
               </div>
             </div>
           )}
