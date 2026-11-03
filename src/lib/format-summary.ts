@@ -18,7 +18,9 @@ export function formatIdeaSummary(
     )
     .join('\n');
 
-  return `📌 CHIẾN DỊCH: ${idea.title.toUpperCase()}
+  const versionText = idea.version && idea.version > 1 ? ` (Phiên bản v${idea.version})` : ' (Bản gốc v1)';
+
+  return `📌 CHIẾN DỊCH: ${idea.title.toUpperCase()}${versionText}
 Slogan / Tagline: "${idea.tagline}"
 ${context?.productName ? `Sản phẩm: ${context.productName} · ` : ''}${context?.industry ? `Ngành: ${context.industry} · ` : ''}Ngân sách: ${budgetLabel}
 ${context?.objective ? `Mục tiêu: ${context.objective}\n` : ''}Đối tượng mục tiêu: ${idea.targetAudience}

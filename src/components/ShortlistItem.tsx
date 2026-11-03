@@ -38,9 +38,11 @@ export function ShortlistItem({ entry, onRemove }: ShortlistItemProps) {
     }
   };
 
+  const version = idea.version || 1;
+
   const handleConfirmDelete = () => {
     onRemove(entry.id);
-    showToast(`Đã xóa "${idea.title}" khỏi Shortlist`, 'info');
+    showToast(`Đã xóa "${idea.title} (v${version})" khỏi Shortlist`, 'info');
   };
 
   return (
@@ -54,6 +56,9 @@ export function ShortlistItem({ entry, onRemove }: ShortlistItemProps) {
           <span className="text-slate-500">({context.industry})</span>
           <span className="text-indigo-700 bg-indigo-50 font-semibold px-2 py-0.5 rounded-md border border-indigo-200">
             Ngân sách: {context.budgetLevel === 'low' ? 'Thấp' : context.budgetLevel === 'medium' ? 'Trung bình' : 'Cao'}
+          </span>
+          <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 font-bold px-2 py-0.5 rounded-md border border-purple-200">
+            <span>Phiên bản v{version}</span>
           </span>
         </div>
 

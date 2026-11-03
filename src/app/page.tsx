@@ -29,7 +29,7 @@ export default function HomePage() {
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const savedCount = ideas.filter((idea) => isSaved(idea.id)).length;
+  const savedCount = ideas.filter((idea) => isSaved(idea.id, idea.version || 1)).length;
   const allSaved = ideas.length > 0 && savedCount === ideas.length;
 
   const handleResetAll = () => {

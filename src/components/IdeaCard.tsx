@@ -17,20 +17,20 @@ interface IdeaCardProps {
 }
 
 export function IdeaCard({ idea, context, index }: IdeaCardProps) {
-  const { isSaved, saveIdea, removeIdea, updateShortlistIdea } = useShortlist();
+  const { isSaved, saveIdea, removeIdea } = useShortlist();
   const { updateIdea, revertIdea } = useCampaign();
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
   const [isRefineModalOpen, setIsRefineModalOpen] = useState(false);
 
-  const saved = isSaved(idea.id);
   const currentVersion = idea.version || 1;
+  const saved = isSaved(idea.id, currentVersion);
   const hasHistory = (idea.refinementHistory && idea.refinementHistory.length > 0) || currentVersion > 1;
 
   const handleToggleSave = () => {
     if (saved) {
-      removeIdea(idea.id);
-      showToast(`Đã bỏ "${idea.title}" khỏi Shortlist.`, 'info');
+      removeIdea(idea.id, currentVersion);
+      showToast(`Đã bỏ "${idea.title} (v${currentVersion})" khỏi Shortlist.`, 'info');
     } else {
       const res = saveIdea(idea, context);
       if (res.success) {
@@ -54,10 +54,9 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
   };
 
   const handleApplyRefinement = (refinedIdea: MarketingIdea) => {
+    // Áp dụng bản tinh chỉnh mới vào state hiển thị trên màn hình.
+    // Các bản lưu cũ trong Shortlist được bảo toàn độc lập hoàn toàn!
     updateIdea(refinedIdea);
-    if (saved) {
-      updateShortlistIdea(refinedIdea);
-    }
   };
 
   const handleRevert = () => {

@@ -5,6 +5,14 @@ import { MarketingIdea, CampaignInput, ShortlistEntry } from '@/types/marketing'
 
 const STORAGE_KEY = 'marketing-ai:shortlist:v1';
 
+/**
+ * Sinh khóa định danh duy nhất cho từng phiên bản của ý tưởng trong Shortlist.
+ * Cho phép lưu độc lập nhiều phiên bản (v1, v2, v3...) của cùng 1 ý tưởng.
+ */
+export function getShortlistEntryId(ideaId: string, version: number = 1): string {
+  return `${ideaId}_v${version}`;
+}
+
 export function useShortlist() {
   const [shortlist, setShortlist] = useState<ShortlistEntry[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -65,26 +73,34 @@ export function useShortlist() {
     }
   }, []);
 
-  // Kiểm tra ý tưởng đã lưu chưa
+  // Kiểm tra phiên bản cụ thể của ý tưởng đã lưu trong Shortlist chưa
   const isSaved = useCallback(
-    (ideaId: string): boolean => {
-      return shortlist.some((item) => item.id === ideaId);
+    (ideaId: string, version: number = 1): boolean => {
+      const targetKey = getShortlistEntryId(ideaId, version);
+      return shortlist.some(
+        (item) => item.id === targetKey || (item.id === ideaId && (item.idea.version || 1) === version)
+      );
     },
     [shortlist]
   );
 
-  // Lưu ý tưởng
+  // Lưu một phiên bản ý tưởng vào Shortlist độc lập
   const saveIdea = useCallback(
     (
       idea: MarketingIdea,
       context: Pick<CampaignInput, 'industry' | 'productName' | 'budgetLevel' | 'objective'>
     ): { success: boolean; message: string } => {
-      if (isSaved(idea.id)) {
-        return { success: false, message: 'Ý tưởng này đã có trong Shortlist.' };
+      const version = idea.version || 1;
+      if (isSaved(idea.id, version)) {
+        return {
+          success: false,
+          message: `Phiên bản v${version} của ý tưởng này đã có trong Shortlist.`
+        };
       }
 
+      const entryId = getShortlistEntryId(idea.id, version);
       const newEntry: ShortlistEntry = {
-        id: idea.id,
+        id: entryId,
         savedAt: new Date().toISOString(),
         context: {
           industry: context.industry,
@@ -102,39 +118,46 @@ export function useShortlist() {
         return { success: false, message: 'Trình duyệt chặn bộ nhớ cục bộ hoặc bộ nhớ đã đầy.' };
       }
 
-      return { success: true, message: `Đã lưu "${idea.title}" vào Shortlist!` };
+      return { success: true, message: `Đã lưu "${idea.title} (v${version})" vào Shortlist!` };
     },
     [shortlist, isSaved, persist]
   );
 
-  // Lưu nhiều ý tưởng cùng lúc (hỗ trợ lưu toàn bộ cả 5 ý tưởng)
+  // Lưu nhiều ý tưởng cùng lúc (tính theo từng phiên bản độc lập)
   const saveMultipleIdeas = useCallback(
     (
       ideasToSave: MarketingIdea[],
       context: Pick<CampaignInput, 'industry' | 'productName' | 'budgetLevel' | 'objective'>
     ): { success: boolean; addedCount: number; message: string } => {
-      const existingIds = new Set(shortlist.map((item) => item.id));
-      const newIdeas = ideasToSave.filter((item) => !existingIds.has(item.id));
+      const existingKeys = new Set(
+        shortlist.map((item) =>
+          item.id.includes('_v') ? item.id : getShortlistEntryId(item.id, item.idea.version || 1)
+        )
+      );
+
+      const newIdeas = ideasToSave.filter(
+        (idea) => !existingKeys.has(getShortlistEntryId(idea.id, idea.version || 1))
+      );
 
       if (newIdeas.length === 0) {
         return {
           success: true,
           addedCount: 0,
-          message: 'Tất cả các ý tưởng này đã có trong Shortlist.',
+          message: 'Tất cả các phiên bản ý tưởng này đã có trong Shortlist.'
         };
       }
 
       const now = new Date().toISOString();
       const newEntries: ShortlistEntry[] = newIdeas.map((idea) => ({
-        id: idea.id,
+        id: getShortlistEntryId(idea.id, idea.version || 1),
         savedAt: now,
         context: {
           industry: context.industry,
           productName: context.productName,
           budgetLevel: context.budgetLevel,
-          objective: context.objective,
+          objective: context.objective
         },
-        idea,
+        idea
       }));
 
       const newList = [...newEntries, ...shortlist];
@@ -144,36 +167,31 @@ export function useShortlist() {
         return {
           success: false,
           addedCount: 0,
-          message: 'Trình duyệt chặn bộ nhớ cục bộ hoặc bộ nhớ đã đầy.',
+          message: 'Trình duyệt chặn bộ nhớ cục bộ hoặc bộ nhớ đã đầy.'
         };
       }
 
       return {
         success: true,
         addedCount: newEntries.length,
-        message: `Đã lưu ${newEntries.length} ý tưởng vào Shortlist!`,
+        message: `Đã lưu ${newEntries.length} ý tưởng vào Shortlist!`
       };
     },
     [shortlist, persist]
   );
 
-  // Xóa 1 ý tưởng
+  // Xóa 1 phiên bản ý tưởng khỏi Shortlist (theo entryId hoặc ideaId + version)
   const removeIdea = useCallback(
-    (ideaId: string): boolean => {
-      const newList = shortlist.filter((item) => item.id !== ideaId);
-      return persist(newList);
-    },
-    [shortlist, persist]
-  );
-
-  // Cập nhật nội dung ý tưởng đã lưu trong Shortlist (khi tinh chỉnh AI)
-  const updateShortlistIdea = useCallback(
-    (updatedIdea: MarketingIdea): boolean => {
-      const exists = shortlist.some((item) => item.id === updatedIdea.id);
-      if (!exists) return false;
-      const newList = shortlist.map((item) =>
-        item.id === updatedIdea.id ? { ...item, idea: updatedIdea } : item
-      );
+    (entryIdOrIdeaId: string, version?: number): boolean => {
+      const newList = shortlist.filter((item) => {
+        if (version !== undefined) {
+          const targetKey = getShortlistEntryId(entryIdOrIdeaId, version);
+          if (item.id === targetKey) return false;
+          if (item.id === entryIdOrIdeaId && (item.idea.version || 1) === version) return false;
+          return true;
+        }
+        return item.id !== entryIdOrIdeaId;
+      });
       return persist(newList);
     },
     [shortlist, persist]
@@ -191,9 +209,8 @@ export function useShortlist() {
     isSaved,
     saveIdea,
     saveMultipleIdeas,
-    updateShortlistIdea,
     removeIdea,
-    clearAll,
+    clearAll
   };
 }
 
