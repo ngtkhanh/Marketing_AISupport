@@ -57,10 +57,10 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
   return (
     <nav
       aria-label="Thanh điều hướng nhanh ý tưởng"
-      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl rounded-full px-2.5 py-1.5 flex items-center gap-1 sm:gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-[94vw] overflow-x-auto print:hidden"
+      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-white border border-slate-200 shadow-lg rounded-lg px-2.5 py-1.5 flex items-center gap-1 sm:gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-[94vw] overflow-x-auto print:hidden"
     >
-      <div className="hidden sm:flex items-center gap-1 pl-1 pr-1.5 text-xs font-semibold text-slate-500 border-r border-slate-200">
-        <Navigation className="w-3.5 h-3.5 text-indigo-600" />
+      <div className="hidden sm:flex items-center gap-1.5 pl-1 pr-2 text-xs font-medium text-slate-500 border-r border-slate-200">
+        <Navigation className="w-3.5 h-3.5 text-slate-400" />
         <span>Ý tưởng:</span>
       </div>
 
@@ -74,9 +74,9 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
               key={idea.id || num}
               type="button"
               onClick={() => scrollToIdea(num)}
-              className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-300'
+                  ? 'bg-slate-900 text-white'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
               title={`Cuộn đến Ý tưởng #${num}: ${idea.title}`}
@@ -87,11 +87,11 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
         })}
       </div>
 
-      <div className="border-l border-slate-200 pl-1 ml-0.5">
+      <div className="border-l border-slate-200 pl-1.5 ml-0.5">
         <button
           type="button"
           onClick={scrollToTop}
-          className="p-1 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+          className="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
           title="Cuộn lên đầu trang"
         >
           <ArrowUp className="w-4 h-4" />

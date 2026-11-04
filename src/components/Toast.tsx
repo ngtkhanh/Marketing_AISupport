@@ -49,24 +49,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <div
             key={toast.id}
             role="status"
-            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border transition-all animate-in slide-in-from-bottom-3 duration-300 ${
-              toast.type === 'success'
-                ? 'bg-white text-slate-800 border-emerald-300 shadow-emerald-500/10'
-                : toast.type === 'error'
-                ? 'bg-white text-slate-800 border-rose-300 shadow-rose-500/10'
-                : 'bg-white text-slate-800 border-indigo-300 shadow-indigo-500/10'
-            }`}
+            className="pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg shadow-lg border border-slate-200 bg-white text-slate-800 transition-all animate-in slide-in-from-bottom-3 duration-300"
           >
-            {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />}
-            {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />}
-            {toast.type === 'info' && <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />}
+            {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+            {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
+            {toast.type === 'info' && <Info className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" />}
 
             <div className="flex-1 text-sm font-medium leading-relaxed">{toast.text}</div>
 
             <button
               onClick={() => removeToast(toast.id)}
               aria-label="Đóng thông báo"
-              className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
+              className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

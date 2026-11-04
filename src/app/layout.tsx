@@ -34,7 +34,7 @@ export default function RootLayout({
                   href="https://www.facebook.com/ngtkhanh12"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-slate-600 hover:text-indigo-600 font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 font-medium transition-colors"
                 >
                   <svg
                     className="w-4 h-4 text-[#1877F2]"

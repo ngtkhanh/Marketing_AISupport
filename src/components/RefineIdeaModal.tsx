@@ -165,27 +165,27 @@ export function RefineIdeaModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="refine-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 overflow-y-auto animate-in fade-in duration-200"
     >
       <div
         ref={modalRef}
-        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+        className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-purple-50/20">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700">
-              <Sparkles className="w-5 h-5 text-indigo-600 animate-pulse" />
+            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
+              <Sparkles className="w-4 h-4 text-slate-600" />
             </div>
             <div>
               <h2 id="refine-modal-title" className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span>Tinh chỉnh chiến dịch với AI</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-semibold">
+                <span>Tinh chỉnh chiến dịch</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
                   v{currentVersion}
                 </span>
               </h2>
               <p className="text-xs text-slate-500 truncate max-w-[280px] sm:max-w-md">
-                Đang sửa: <span className="font-semibold text-slate-700">{idea.title}</span>
+                Đang sửa: <span className="font-medium text-slate-700">{idea.title}</span>
               </p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export function RefineIdeaModal({
             onClick={onClose}
             disabled={isLoading}
             aria-label="Đóng cửa sổ"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -227,7 +227,7 @@ export function RefineIdeaModal({
                     maxLength={300}
                     disabled={isLoading}
                     placeholder="VD: Giảm ngân sách xuống mức tiết kiệm nhất, chuyển sang tập trung kênh TikTok và đổi slogan bắt trend hơn..."
-                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none text-slate-800 placeholder:text-slate-400"
+                    className="w-full text-xs sm:text-sm p-3 rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-colors resize-none text-slate-800 placeholder:text-slate-400"
                   />
                   <span className="absolute bottom-2.5 right-3 text-[10px] sm:text-xs text-slate-400">
                     {instruction.length}/300
@@ -237,7 +237,7 @@ export function RefineIdeaModal({
 
               {/* Gợi ý prompt nhanh */}
               <div>
-                <p className="text-xs font-semibold text-slate-500 mb-2">Gợi ý yêu cầu nhanh (Click để chọn):</p>
+                <p className="text-xs font-medium text-slate-500 mb-2">Gợi ý yêu cầu nhanh (Click để chọn):</p>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {QUICK_PROMPTS.map((item, idx) => (
                     <button
@@ -245,7 +245,7 @@ export function RefineIdeaModal({
                       type="button"
                       onClick={() => handleQuickPromptClick(item.prompt)}
                       disabled={isLoading}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 border border-slate-200 hover:border-indigo-300 transition-all focus:ring-2 focus:ring-indigo-500"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
                     >
                       <span>{item.icon}</span>
                       <span>{item.label}</span>
@@ -417,14 +417,14 @@ export function RefineIdeaModal({
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-100 bg-slate-50">
+        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-200 bg-white">
           {!refinedResult ? (
             <>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200/60 transition-colors"
+                className="px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Hủy bỏ
               </button>
@@ -433,16 +433,15 @@ export function RefineIdeaModal({
                 type="button"
                 onClick={handleSendRefineRequest}
                 disabled={isLoading || instruction.trim().length < 3}
-                className="flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 disabled:opacity-50 disabled:pointer-events-none transition-all focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>AI đang phân tích & tinh chỉnh...</span>
+                    <span>Đang phân tích & tinh chỉnh...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
                     <span>Bắt đầu tinh chỉnh</span>
                   </>
                 )}
@@ -453,9 +452,9 @@ export function RefineIdeaModal({
               <button
                 type="button"
                 onClick={handleDiscardAndReset}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200/60 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 text-slate-500" />
                 <span>Thử yêu cầu khác</span>
               </button>
 
@@ -463,18 +462,18 @@ export function RefineIdeaModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-200/60 transition-colors"
+                  className="px-3 py-2 text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  Đóng (Không lưu)
+                  Đóng
                 </button>
 
                 <button
                   type="button"
                   onClick={handleApply}
-                  className="flex items-center gap-1.5 px-5 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/25 hover:bg-emerald-700 transition-all focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Áp dụng bản này (v{nextVersion})</span>
+                  <span>Áp dụng (v{nextVersion})</span>
                 </button>
               </div>
             </>

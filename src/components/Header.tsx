@@ -12,54 +12,54 @@ export function Header() {
   const { count, isLoaded } = useShortlist();
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200/80 shadow-sm shadow-indigo-500/10 group-hover:scale-105 transition-transform bg-white shrink-0">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg overflow-hidden border border-slate-200 bg-white shrink-0">
             <Image
               src="/logo.png"
               alt="MarketingAI Logo"
-              width={40}
-              height={40}
+              width={36}
+              height={36}
               className="w-full h-full object-cover"
               priority
             />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg text-slate-900 tracking-tight">MarketingAI</span>
+              <span className="font-semibold text-base text-slate-900 tracking-tight">MarketingAI</span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block">Trợ lý đề xuất ý tưởng Marketing theo ngân sách</p>
+            <p className="text-xs text-slate-500 hidden sm:block">Trợ lý lập kế hoạch & ý tưởng marketing theo ngân sách</p>
           </div>
         </Link>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-1.5 sm:gap-2">
+        <nav className="flex items-center gap-1 sm:gap-2">
           <Link
             href="/"
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
               pathname === '/'
-                ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-slate-100 text-slate-900 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
             }`}
           >
-            <Lightbulb className="w-4 h-4" />
+            <Lightbulb className="w-4 h-4 text-slate-500" />
             <span>Tạo ý tưởng</span>
           </Link>
 
           <Link
             href="/shortlist"
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors relative ${
               pathname === '/shortlist'
-                ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-slate-100 text-slate-900 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
             }`}
           >
-            <Bookmark className="w-4 h-4" />
+            <Bookmark className="w-4 h-4 text-slate-500" />
             <span>Shortlist</span>
             {isLoaded && count > 0 && (
-              <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-indigo-600 rounded-full animate-in zoom-in-50 duration-200">
+              <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white bg-slate-900 rounded-full">
                 {count}
               </span>
             )}

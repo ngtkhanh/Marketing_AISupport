@@ -122,19 +122,15 @@ export default function HomePage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Hero section */}
-      <section className="text-center max-w-2xl mx-auto space-y-3 pt-2 pb-2 print:hidden">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Giải pháp Marketing Đột Phá Bằng Trí Tuệ Nhân Tạo</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          Đề Xuất Ý Tưởng Marketing <br />
-          <span className="text-indigo-600">
-            Khả Thi Theo Từng Mức Ngân Sách
+      <section className="text-center max-w-2xl mx-auto space-y-2.5 pt-4 pb-2 print:hidden">
+        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
+          Lập Kế Hoạch & Ý Tưởng Marketing <br />
+          <span className="text-slate-700 font-semibold">
+            Theo Ngân Sách Thực Tế
           </span>
         </h1>
         <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-          Đập tan nỗi đau bí ý tưởng. Nhận ngay 05 đề xuất chiến dịch marketing chi tiết, đúng ngân sách thực tế kèm timeline hành động 04 tuần cụ thể.
+          Nhận ngay 05 đề xuất chiến dịch marketing chi tiết, tối ưu kênh truyền thông đúng mức ngân sách kèm kế hoạch hành động 04 tuần.
         </p>
       </section>
 
@@ -173,12 +169,12 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                  <Compass className="w-6 h-6 text-indigo-600" />
+                  <Compass className="w-5 h-5 text-slate-700" />
                   <span>05 Đề Xuất Chiến Dịch Marketing Cho Bạn</span>
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                   Đã cá nhân hóa cho sản phẩm <strong>"{lastInput.productName}"</strong> · Ngân sách{' '}
-                  <span className="font-semibold text-indigo-600 uppercase">{lastInput.budgetLevel}</span>
+                  <span className="font-semibold text-slate-800 uppercase">{lastInput.budgetLevel}</span>
                 </p>
               </div>
 
@@ -186,30 +182,30 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={handleExportMarkdown}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow cursor-pointer active:scale-95 print:hidden"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 cursor-pointer print:hidden"
                   title="Tải toàn bộ 05 ý tưởng chiến dịch dưới dạng file Markdown (.md)"
                 >
-                  <FileDown className="w-3.5 h-3.5 text-indigo-600" />
+                  <FileDown className="w-3.5 h-3.5 text-slate-500" />
                   <span>Tải .MD</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow cursor-pointer active:scale-95 print:hidden"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 cursor-pointer print:hidden"
                   title="In hoặc Lưu toàn bộ 05 ý tưởng thành file PDF"
                 >
-                  <Printer className="w-3.5 h-3.5 text-slate-600" />
+                  <Printer className="w-3.5 h-3.5 text-slate-500" />
                   <span>In / PDF</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleResetAll}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 shadow-sm cursor-pointer active:scale-95 print:hidden"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 cursor-pointer print:hidden"
                   title="Làm mới form và xóa toàn bộ ý tưởng đề xuất"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
                   <span>Làm mới</span>
                 </button>
 
@@ -217,21 +213,21 @@ export default function HomePage() {
                   type="button"
                   onClick={handleSaveAll}
                   disabled={allSaved}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all print:hidden ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors print:hidden ${
                     allSaved
-                      ? 'bg-amber-50 text-amber-700 border border-amber-200 cursor-default'
-                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-pointer shadow-sm hover:shadow'
+                      ? 'bg-slate-100 text-slate-600 border border-slate-200 cursor-default'
+                      : 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer'
                   }`}
                   title={allSaved ? 'Toàn bộ 5 ý tưởng đã có trong Shortlist' : 'Lưu tất cả ý tưởng vào Shortlist'}
                 >
                   {allSaved ? (
                     <>
-                      <BookmarkCheck className="w-4 h-4 text-amber-600" />
+                      <BookmarkCheck className="w-4 h-4 text-emerald-600" />
                       <span>Đã lưu cả 5 ý tưởng ({savedCount}/5)</span>
                     </>
                   ) : (
                     <>
-                      <Bookmark className="w-4 h-4 text-indigo-600" />
+                      <Bookmark className="w-4 h-4 text-slate-300" />
                       <span>Lưu tất cả vào Shortlist {savedCount > 0 ? `(${savedCount}/5)` : ''}</span>
                     </>
                   )}

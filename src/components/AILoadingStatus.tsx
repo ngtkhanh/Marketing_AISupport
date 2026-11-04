@@ -86,33 +86,33 @@ export function AILoadingStatus() {
   }, []);
 
   return (
-    <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/60 border border-indigo-100 shadow-sm space-y-5 animate-in fade-in duration-300">
+    <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-4 animate-in fade-in duration-300">
       {/* Header trạng thái */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm shadow-indigo-200">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
             <Loader2 className="w-4 h-4 animate-spin" />
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900">
-              AI Đang Xây Dựng 05 Ý Tưởng Chiến Dịch
+              Đang Phân Tích & Xây Dựng 05 Ý Tưởng
             </h3>
             <p className="text-xs text-slate-500">
-              Thời gian xử lý: <span className="font-semibold text-indigo-600">{elapsedSeconds}s</span> (dự kiến ~12–18s)
+              Thời gian xử lý: <span className="font-semibold text-slate-800">{elapsedSeconds}s</span> (dự kiến ~12–18s)
             </p>
           </div>
         </div>
 
         {/* Badge tiến độ */}
-        <div className="self-start sm:self-auto px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
-          Đang xử lý: {Math.round(progress)}%
+        <div className="self-start sm:self-auto px-2.5 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold">
+          Tiến độ: {Math.round(progress)}%
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
         <div
-          className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 h-full rounded-full transition-all duration-300 ease-out"
+          className="bg-slate-900 h-full rounded-full transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -127,38 +127,30 @@ export function AILoadingStatus() {
           return (
             <div
               key={stage.id}
-              className={`p-3 rounded-xl border transition-all duration-300 flex flex-col justify-between ${
+              className={`p-3 rounded-lg border transition-colors flex flex-col justify-between ${
                 isDone
-                  ? 'bg-emerald-50/70 border-emerald-200 text-slate-800'
+                  ? 'bg-slate-50 border-slate-200 text-slate-800'
                   : isCurrent
-                  ? 'bg-white border-indigo-300 shadow-sm ring-1 ring-indigo-200 text-slate-900'
-                  : 'bg-white/50 border-slate-200/70 opacity-60 text-slate-500'
+                  ? 'bg-slate-50 border-slate-900 text-slate-900'
+                  : 'bg-white border-slate-200/80 opacity-50 text-slate-400'
               }`}
             >
               <div className="flex items-center justify-between gap-1 mb-1.5">
-                <span
-                  className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${
-                    isDone
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : isCurrent
-                      ? 'bg-indigo-100 text-indigo-800'
-                      : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
+                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700">
                   Bước {idx + 1}
                 </span>
 
                 {isDone ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 ) : isCurrent ? (
-                  <Loader2 className="w-4 h-4 text-indigo-600 animate-spin flex-shrink-0" />
+                  <Loader2 className="w-4 h-4 text-slate-800 animate-spin flex-shrink-0" />
                 ) : (
                   <Icon className="w-4 h-4 text-slate-400 flex-shrink-0" />
                 )}
               </div>
 
               <div>
-                <p className={`text-xs font-semibold leading-snug ${isCurrent ? 'text-indigo-950' : 'text-slate-800'}`}>
+                <p className={`text-xs font-semibold leading-snug ${isCurrent ? 'text-slate-900' : 'text-slate-700'}`}>
                   {stage.label}
                 </p>
                 <p className="text-[11px] text-slate-500 mt-1 leading-tight line-clamp-2">

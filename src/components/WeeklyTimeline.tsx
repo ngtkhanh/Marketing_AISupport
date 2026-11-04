@@ -13,8 +13,8 @@ export function WeeklyTimeline({ timeline }: WeeklyTimelineProps) {
 
   return (
     <div className="mt-4 pt-4 border-t border-slate-100">
-      <div className="flex items-center gap-2 mb-3 text-slate-800 font-semibold text-xs tracking-wider uppercase">
-        <Calendar className="w-4 h-4 text-indigo-600" />
+      <div className="flex items-center gap-2 mb-3 text-slate-700 font-semibold text-xs tracking-wider uppercase">
+        <Calendar className="w-4 h-4 text-slate-400" />
         <span>Kế hoạch triển khai 04 tuần tóm tắt</span>
       </div>
 
@@ -22,22 +22,22 @@ export function WeeklyTimeline({ timeline }: WeeklyTimelineProps) {
         {timeline.map((plan) => (
           <div
             key={plan.week}
-            className="p-3 rounded-lg bg-slate-50 border border-slate-200/80 flex flex-col justify-between"
+            className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between"
           >
             <div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-[10px] font-bold text-white shrink-0">
-                  W{plan.week}
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-xs font-bold text-slate-900 shrink-0">
+                  Tuần {plan.week}:
                 </span>
-                <span className="text-xs font-bold text-slate-800 truncate" title={plan.title}>
+                <span className="text-xs font-medium text-slate-800 truncate" title={plan.title}>
                   {plan.title}
                 </span>
               </div>
 
-              <ul className="space-y-1 mt-2">
+              <ul className="space-y-1 mt-1.5">
                 {plan.activities.map((act, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-[11px] text-slate-600 leading-tight">
-                    <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                  <li key={i} className="flex items-start gap-1.5 text-[11px] text-slate-600 leading-normal">
+                    <span className="text-slate-400 mt-0.5">•</span>
                     <span>{act}</span>
                   </li>
                 ))}

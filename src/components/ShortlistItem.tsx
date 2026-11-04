@@ -56,12 +56,12 @@ export function ShortlistItem({
 
   return (
     <article
-      className={`p-6 rounded-2xl bg-white border transition-all relative space-y-4 shadow-xs ${
+      className={`p-5 sm:p-6 rounded-xl bg-white border transition-colors relative space-y-4 ${
         entry.isPrimary
-          ? 'border-emerald-400 ring-2 ring-emerald-400/25 shadow-md'
+          ? 'border-slate-900 ring-1 ring-slate-900'
           : isSelected
-          ? 'border-indigo-400 ring-2 ring-indigo-400/20 shadow-md'
-          : 'border-slate-200/90'
+          ? 'border-slate-700'
+          : 'border-slate-200'
       }`}
     >
       {/* Context Badge & Selection Header */}
@@ -69,37 +69,37 @@ export function ShortlistItem({
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Checkbox chọn so sánh */}
           {onToggleSelect && (
-            <label className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 hover:bg-indigo-50/60 hover:border-indigo-200 transition-colors cursor-pointer select-none">
+            <label className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isSelected}
                 disabled={!isSelected && disableSelect}
                 onChange={() => onToggleSelect(entry.id)}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-30 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 disabled:opacity-30 cursor-pointer"
               />
-              <span className={`text-xs font-semibold ${isSelected ? 'text-indigo-700' : 'text-slate-700'}`}>
+              <span className={`text-xs font-medium ${isSelected ? 'text-slate-900 font-semibold' : 'text-slate-600'}`}>
                 {isSelected ? 'Đã chọn so sánh' : 'Chọn so sánh'}
               </span>
             </label>
           )}
 
           {entry.isPrimary && (
-            <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-600 text-white shadow-xs">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded bg-slate-900 text-white">
               <Star className="w-3.5 h-3.5 fill-current" />
               <span>Ưu tiên số 1</span>
             </span>
           )}
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
+            <span className="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
               {context.productName}
             </span>
             <span className="text-slate-500">({context.industry})</span>
-            <span className="text-indigo-700 bg-indigo-50 font-semibold px-2 py-0.5 rounded-md border border-indigo-200">
+            <span className="text-slate-700 bg-slate-100 font-medium px-2 py-0.5 rounded">
               Ngân sách: {context.budgetLevel === 'low' ? 'Thấp' : context.budgetLevel === 'medium' ? 'Trung bình' : 'Cao'}
             </span>
-            <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 font-bold px-2 py-0.5 rounded-md border border-purple-200">
-              <span>Phiên bản v{version}</span>
+            <span className="text-slate-600 bg-slate-100 font-medium px-2 py-0.5 rounded">
+              v{version}
             </span>
           </div>
         </div>
@@ -114,18 +114,18 @@ export function ShortlistItem({
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900">{idea.title}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">{idea.title}</h3>
             {idea.version && idea.version > 1 && (
-              <span className="text-xs px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
+              <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
                 v{idea.version}
               </span>
             )}
-            <div className="flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-              <DollarSign className="w-3.5 h-3.5 -mr-0.5" />
+            <div className="flex items-center text-xs font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+              <DollarSign className="w-3.5 h-3.5 -mr-0.5 text-slate-500" />
               <span>{idea.estimatedBudget}</span>
             </div>
           </div>
-          <p className="text-sm font-medium text-indigo-600 italic">"{idea.tagline}"</p>
+          <p className="text-xs sm:text-sm text-slate-600">"{idea.tagline}"</p>
         </div>
 
         {/* Action Buttons */}
@@ -133,9 +133,9 @@ export function ShortlistItem({
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-400" />}
             <span>{copied ? 'Đã sao chép' : 'Sao chép tóm tắt'}</span>
           </button>
 
@@ -144,14 +144,14 @@ export function ShortlistItem({
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="px-2.5 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg bg-rose-700 text-white text-xs font-medium hover:bg-rose-800 transition-colors cursor-pointer"
               >
                 Xác nhận xóa
               </button>
               <button
                 type="button"
                 onClick={() => setIsConfirmingDelete(false)}
-                className="px-2 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 transition-colors"
+                className="px-2 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Hủy
               </button>
@@ -161,7 +161,7 @@ export function ShortlistItem({
               type="button"
               onClick={() => setIsConfirmingDelete(true)}
               title="Xóa khỏi Shortlist"
-              className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -175,7 +175,7 @@ export function ShortlistItem({
         {idea.channels.map((ch, idx) => (
           <span
             key={idx}
-            className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+            className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600"
           >
             {ch}
           </span>
@@ -183,18 +183,18 @@ export function ShortlistItem({
       </div>
 
       {/* Content */}
-      <div className="text-sm text-slate-700 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
+      <div className="text-sm text-slate-700 bg-slate-50/70 p-3.5 rounded-lg border border-slate-100">
         <p className="font-semibold text-slate-800 text-xs mb-1 uppercase tracking-wider">Nội dung chiến lược cốt lõi:</p>
         <p>{idea.mainContent}</p>
       </div>
 
       {/* Personal Notes (Feature 2.2) */}
       {entry.userNotes && (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-950">
-          <Edit3 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800">
+          <Edit3 className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <span className="font-bold text-amber-900">Ghi chú cá nhân: </span>
-            <span className="italic">{entry.userNotes}</span>
+            <span className="font-semibold text-slate-900">Ghi chú cá nhân: </span>
+            <span className="text-slate-700">{entry.userNotes}</span>
           </div>
         </div>
       )}

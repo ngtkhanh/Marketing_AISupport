@@ -146,17 +146,17 @@ export function StrategyComparisonModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="comparison-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/70 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/50 overflow-y-auto animate-in fade-in duration-200"
     >
-      <div className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[94vh] flex flex-col">
+      <div className="relative w-full max-w-6xl bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden my-auto max-h-[94vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 via-indigo-50/20 to-slate-50 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-white shrink-0">
           <div>
             <h2
               id="comparison-modal-title"
               className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2"
             >
-              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <Scale className="w-5 h-5 text-slate-700" />
               <span>Bảng So Sánh Chiến Lược ({entries.length} phương án)</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -168,10 +168,10 @@ export function StrategyComparisonModal({
             <button
               type="button"
               onClick={handleCopyMarkdown}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
               title="Sao chép toàn bộ bảng so sánh dạng Markdown"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
               <span>{copied ? 'Đã sao chép MD' : 'Sao chép Markdown'}</span>
             </button>
 
@@ -179,7 +179,7 @@ export function StrategyComparisonModal({
               type="button"
               onClick={onClose}
               aria-label="Đóng cửa sổ so sánh"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-indigo-500"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -197,20 +197,17 @@ export function StrategyComparisonModal({
 
           {/* AI CMO Consultation Section (On-Demand) */}
           {!cmoVerdict ? (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-50/90 via-purple-50/70 to-pink-50/80 border border-indigo-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-600 text-white shrink-0 shadow-xs">
-                  <Trophy className="w-5 h-5 text-amber-300" />
+                <div className="p-2 rounded-lg bg-slate-200 text-slate-800 shrink-0">
+                  <Trophy className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                     <span>Góc Nhìn Chuyên Gia: Phân Tích & Lời Khuyên Từ AI CMO</span>
-                    <span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200">
-                      Tư vấn theo yêu cầu
-                    </span>
                   </h3>
-                  <p className="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
-                    Đang phân vân giữa các phương án? Bấm nút để AI CMO phân tích đối đầu trực diện, chỉ ra bài toán đánh đổi (Trade-off) và đề xuất phương án tối ưu nhất.
+                  <p className="text-xs text-slate-600 mt-0.5 max-w-xl leading-relaxed">
+                    Đang phân vân giữa các phương án? Bấm nút để AI CMO phân tích đối đầu trực diện, chỉ ra bài toán đánh đổi và đề xuất phương án tối ưu nhất.
                   </p>
                 </div>
               </div>
@@ -219,37 +216,33 @@ export function StrategyComparisonModal({
                 type="button"
                 onClick={handleRequestCMOVerdict}
                 disabled={isLoadingVerdict}
-                style={{ backgroundColor: '#4f46e5', color: '#ffffff' }}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-indigo-600 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-600/30 disabled:opacity-50 transition-all cursor-pointer shrink-0 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-xs sm:text-sm bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-50 transition-colors cursor-pointer shrink-0"
               >
                 {isLoadingVerdict ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    <span className="text-white font-bold">AI CMO đang cân nhắc...</span>
+                    <span>AI CMO đang cân nhắc...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span className="text-white font-bold">Nhận tư vấn từ AI CMO</span>
+                    <Sparkles className="w-4 h-4 text-slate-300" />
+                    <span>Nhận tư vấn từ AI CMO</span>
                   </>
                 )}
               </button>
             </div>
           ) : (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50/60 to-purple-50 border border-purple-200/90 text-xs sm:text-sm text-purple-950 flex items-start gap-3 shadow-xs animate-in fade-in duration-200">
-              <div className="p-2 rounded-xl bg-purple-600 text-white shrink-0 shadow-2xs">
-                <Lightbulb className="w-4 h-4 text-amber-300" />
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 flex items-start gap-3 animate-in fade-in duration-200">
+              <div className="p-2 rounded-lg bg-slate-200 text-slate-700 shrink-0">
+                <Lightbulb className="w-4 h-4" />
               </div>
               <div className="flex-1 space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-purple-950 text-xs uppercase tracking-wider">
-                    💡 Mẹo chiến lược lai (Hybrid Strategy Tip) từ AI CMO
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-200/70 text-purple-900 font-bold">
-                    Phối hợp tối ưu
+                  <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                    Mẹo chiến lược lai (Hybrid Strategy Tip) từ AI CMO
                   </span>
                 </div>
-                <p className="text-slate-800 leading-relaxed text-xs sm:text-sm pt-0.5">
+                <p className="text-slate-700 leading-relaxed text-xs sm:text-sm pt-0.5">
                   {cmoVerdict.hybridStrategyTip}
                 </p>
               </div>
@@ -270,18 +263,18 @@ export function StrategyComparisonModal({
                       key={entry.id}
                       className={`p-3 align-top transition-colors relative ${
                         entry.isPrimary
-                          ? 'bg-emerald-50/60 border-x-2 border-emerald-400'
+                          ? 'bg-slate-50 border-x border-slate-300'
                           : isWinner
-                          ? 'bg-amber-50/50 border-x-2 border-amber-400'
+                          ? 'bg-slate-50/50 border-x border-slate-200'
                           : 'bg-white'
                       }`}
                     >
                       <div className="space-y-2">
                         {/* Huy hiệu AI CMO Khuyên Chọn */}
                         {isWinner && (
-                          <div className="flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[11px] font-extrabold shadow-sm animate-in fade-in">
-                            <Trophy className="w-3.5 h-3.5 text-amber-100 shrink-0" />
-                            <span>👑 AI CMO KHUYÊN CHỌN</span>
+                          <div className="flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-md bg-slate-900 text-white text-[11px] font-semibold animate-in fade-in">
+                            <Trophy className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                            <span>AI CMO KHUYÊN CHỌN</span>
                           </div>
                         )}
 
@@ -289,16 +282,16 @@ export function StrategyComparisonModal({
                         <button
                           type="button"
                           onClick={() => onTogglePrimary(entry.id)}
-                          className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                          className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                             entry.isPrimary
-                              ? 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
+                              ? 'bg-slate-900 text-white'
                               : isWinner
-                              ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
-                              : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300'
+                              ? 'bg-slate-200 hover:bg-slate-300 text-slate-900'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
                           }`}
                         >
                           <Star className={`w-3.5 h-3.5 ${entry.isPrimary ? 'fill-current' : ''}`} />
-                          <span>{entry.isPrimary ? '⭐ Đang Ưu Tiên Triển Khai' : isWinner ? '⭐ Chọn theo AI CMO' : 'Đặt làm Ưu tiên'}</span>
+                          <span>{entry.isPrimary ? 'Đang ưu tiên triển khai' : isWinner ? 'Chọn theo AI CMO' : 'Đặt làm ưu tiên'}</span>
                         </button>
 
                         <div>
@@ -306,11 +299,11 @@ export function StrategyComparisonModal({
                             <h3 className="text-base font-bold text-slate-900 leading-snug">
                               {entry.idea.title}
                             </h3>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold shrink-0">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium shrink-0">
                               v{entry.idea.version || 1}
                             </span>
                           </div>
-                          <p className="text-xs text-indigo-600 font-medium italic mt-0.5">
+                          <p className="text-xs text-slate-600 mt-0.5">
                             "{entry.idea.tagline}"
                           </p>
                         </div>
@@ -367,11 +360,11 @@ export function StrategyComparisonModal({
             <tbody className="divide-y divide-slate-100">
               {/* AI CMO Consultation Rows (Integrated Directly into Matrix) */}
               {!cmoVerdict ? (
-                <tr className="bg-gradient-to-r from-indigo-50/60 via-purple-50/40 to-slate-50 border-y-2 border-indigo-200">
-                  <td className="p-3.5 font-bold text-indigo-950 bg-indigo-50/90 align-middle">
+                <tr className="bg-slate-50 border-y border-slate-200">
+                  <td className="p-3.5 font-bold text-slate-900 bg-slate-100 align-middle">
                     <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse shrink-0" />
-                      <span className="text-xs uppercase tracking-wide">Nhận định từ AI CMO</span>
+                      <Sparkles className="w-4 h-4 text-slate-600 shrink-0" />
+                      <span className="text-xs uppercase tracking-wide">Nhận định AI CMO</span>
                     </div>
                   </td>
                   <td colSpan={entries.length} className="p-3 text-xs text-slate-700 align-middle">
@@ -383,8 +376,7 @@ export function StrategyComparisonModal({
                         type="button"
                         onClick={handleRequestCMOVerdict}
                         disabled={isLoadingVerdict}
-                        style={{ backgroundColor: '#4f46e5', color: '#ffffff' }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm cursor-pointer transition-colors shrink-0 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs cursor-pointer transition-colors shrink-0 disabled:opacity-50"
                       >
                         {isLoadingVerdict ? (
                           <>
@@ -393,7 +385,6 @@ export function StrategyComparisonModal({
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                             <span>Kích hoạt ngay</span>
                           </>
                         )}
@@ -404,11 +395,11 @@ export function StrategyComparisonModal({
               ) : (
                 <>
                   {/* AI Row 1: Phán quyết & Nhận định cốt lõi */}
-                  <tr className="bg-gradient-to-r from-amber-50/70 via-indigo-50/40 to-amber-50/70 border-y-2 border-amber-300">
-                    <td className="p-3.5 font-bold text-amber-950 bg-amber-100/80 align-top">
+                  <tr className="bg-slate-50 border-y border-slate-200">
+                    <td className="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
                       <div className="flex items-center gap-1.5">
-                        <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span className="text-xs uppercase tracking-wide">👑 Nhận định AI CMO</span>
+                        <Trophy className="w-4 h-4 text-slate-700 shrink-0" />
+                        <span className="text-xs uppercase tracking-wide">Nhận định AI CMO</span>
                       </div>
                     </td>
                     {entries.map((e) => {
