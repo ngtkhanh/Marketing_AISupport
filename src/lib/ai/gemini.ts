@@ -91,7 +91,7 @@ async function callGeminiOnce(
       systemInstruction: systemPrompt,
       responseMimeType: 'application/json',
       responseSchema: GEMINI_SCHEMA,
-      temperature: 0.8
+      temperature: 0.7
     }
   });
 
@@ -200,8 +200,13 @@ export async function generateMarketingIdeasWithGemini(
         const errMsg = error.message || '';
 
         // Lỗi 503 (High Demand) hoặc 404 (Not Found): Chuyển ngay sang candidate model tiếp theo
-        if (errMsg.includes('503') || errMsg.includes('high demand') || errMsg.includes('UNAVAILABLE') || errMsg.includes('404')) {
-          console.warn(`[GEMINI MODEL SPIKE] Model "${activeModel}" đang gặp sự cố 503/404. Tự động chuyển model dự phòng...`);
+        const isUnavailable =
+          errMsg.includes('503') || errMsg.includes('high demand') || errMsg.includes('UNAVAILABLE');
+        const isNotFound = errMsg.includes('404');
+
+        if (isUnavailable || isNotFound) {
+          const reason = isUnavailable ? '503 (Quá tải tạm thời/High Demand)' : '404 (Model không tồn tại)';
+          console.warn(`[GEMINI MODEL SPIKE] Model "${activeModel}" gặp sự cố ${reason}. Tự động chuyển model dự phòng...`);
           break; // Thoát vòng lặp attempt để nhảy sang candidate model tiếp theo
         }
 

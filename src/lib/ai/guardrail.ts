@@ -66,6 +66,12 @@ export async function validateCampaignInputSemantics(
     'bỏ qua hướng dẫn',
     'bỏ qua các chỉ dẫn',
     'ignore instructions',
+    'ignore all',
+    'hãy quên',
+    'quên vai trò',
+    'đóng vai',
+    'jailbreak',
+    'system prompt',
     'viết thơ',
     'viết code',
     'kể chuyện ma'
@@ -81,7 +87,14 @@ export async function validateCampaignInputSemantics(
     }
   }
 
-  const obviousSpam = ['quảng cáo lung tung', 'bán không khí', 'đồ linh tinh', 'mua vui qua ngày'];
+  const obviousSpam = [
+    'quảng cáo lung tung',
+    'bán không khí',
+    'đồ linh tinh',
+    'mua vui qua ngày',
+    'troll',
+    'vớ vẩn'
+  ];
   for (const s of obviousSpam) {
     if (combined.includes(s)) {
       return {
@@ -93,7 +106,38 @@ export async function validateCampaignInputSemantics(
     }
   }
 
-  // 2. Danh sách model cho Guardrail: Ưu tiên gemini-3.5-flash-lite (siêu nhẹ, phản hồi nhanh < 500ms)
+  // 1.5. HƯỚNG TỐI ƯU TỐC ĐỘ: Fast-Pass cho dữ liệu rõ ràng (0ms, 0 Token)
+  // Nếu dữ liệu đã vượt qua Zod schema nghiêm ngặt, có đầy đủ từ ngữ sản phẩm/mục tiêu và không chứa dấu hiệu nghi vấn,
+  // bỏ qua lượt gọi AI Guardrail để tiết kiệm ngay 3-5 giây cho người dùng.
+  const suspiciousKeywords = [
+    'test',
+    'thử nghiệm',
+    'ai là',
+    'bạn là',
+    'làm sao',
+    'tại sao',
+    'là gì',
+    'mày',
+    'tao',
+    'ngu',
+    'chatgpt',
+    'openai',
+    'bypass',
+    'hack'
+  ];
+
+  const hasSuspiciousSignal =
+    suspiciousKeywords.some((k) => combined.includes(k)) ||
+    Boolean(input.additionalNotes && /[{}<>]|function|eval|select\s+|drop\s+|script/i.test(input.additionalNotes)) ||
+    input.productName.trim().length < 3 ||
+    input.objective.trim().split(/\s+/).length < 2;
+
+  if (!hasSuspiciousSignal) {
+    // Dữ liệu trong sạch và rõ ràng -> Fast-Pass tức thì (0ms)
+    return { isValid: true };
+  }
+
+  // 2. Danh sách model cho Guardrail (khi input thuộc diện nghi vấn cần AI thẩm định)
   const candidateGuardModels = [
     process.env.GEMINI_GUARD_MODEL,
     'gemini-3.5-flash-lite',
@@ -122,7 +166,7 @@ Hãy trả về JSON theo schema quy định.`;
           const err = new Error('Guardrail timeout');
           err.name = 'TimeoutError';
           reject(err);
-        }, 5000); // 5s timeout ngắn cho guardrail
+        }, 8000); // Nâng timeout lên 8s để không ngắt oan khi mạng trễ
       });
 
       const apiPromise = ai.models.generateContent({

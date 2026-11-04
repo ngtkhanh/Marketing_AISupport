@@ -284,13 +284,13 @@ export async function refineMarketingIdeaWithGemini(
         const error = err as { name?: string; message?: string; status?: number; code?: string };
         const errMsg = error.message || '';
 
-        if (
-          errMsg.includes('503') ||
-          errMsg.includes('high demand') ||
-          errMsg.includes('UNAVAILABLE') ||
-          errMsg.includes('404')
-        ) {
-          console.warn(`[REFINE SPIKE] Model "${activeModel}" lỗi 503/404. Chuyển model dự phòng...`);
+        const isUnavailable =
+          errMsg.includes('503') || errMsg.includes('high demand') || errMsg.includes('UNAVAILABLE');
+        const isNotFound = errMsg.includes('404');
+
+        if (isUnavailable || isNotFound) {
+          const reason = isUnavailable ? '503 (Quá tải tạm thời/High Demand)' : '404 (Model không tồn tại)';
+          console.warn(`[REFINE SPIKE] Model "${activeModel}" gặp sự cố ${reason}. Chuyển model dự phòng...`);
           break;
         }
 
