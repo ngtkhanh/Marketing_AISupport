@@ -141,3 +141,7 @@ export interface CompareStrategiesError {
   };
 }
 
+// Re-export toàn bộ kiểu dữ liệu của Meeting-Ready Campaign Proposal
+export * from './proposal';
+
+
