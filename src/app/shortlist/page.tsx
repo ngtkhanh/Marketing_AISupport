@@ -105,7 +105,7 @@ export default function ShortlistPage() {
             )}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Lưu trữ cục bộ an toàn trên trình duyệt (`localStorage`). Dễ dàng sao chép tóm tắt gửi cho đội ngũ triển khai.
+            Lưu trữ cục bộ an toàn trên trình duyệt (`localStorage`). Dễ dàng sao chép tóm tắt, so sánh chiến lược hoặc tạo bản Proposal A4 sẵn sàng trình duyệt chi.
           </p>
         </div>
 

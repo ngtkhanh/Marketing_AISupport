@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShortlistEntry } from '@/types/marketing';
 import { WeeklyTimeline } from './WeeklyTimeline';
-import { Copy, Trash2, Check, DollarSign, Calendar, AlertCircle, Star, Edit3 } from 'lucide-react';
+import { Copy, Trash2, Check, DollarSign, Calendar, AlertCircle, Star, Edit3, FileSpreadsheet } from 'lucide-react';
 import { formatIdeaSummary, copyToClipboard } from '@/lib/format-summary';
 import { useToast } from './Toast';
+import { ProposalModal } from './proposal/ProposalModal';
+import { getProposalByCampaignId } from '@/lib/proposal-storage';
 
 interface ShortlistItemProps {
   entry: ShortlistEntry;
@@ -26,6 +28,13 @@ export function ShortlistItem({
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [hasSavedProposal, setHasSavedProposal] = useState(false);
+
+  useEffect(() => {
+    const existing = getProposalByCampaignId(idea.id, idea.version || 1);
+    setHasSavedProposal(!!existing);
+  }, [idea.id, idea.version]);
 
   const formattedDate = new Date(savedAt).toLocaleDateString('vi-VN', {
     day: '2-digit',
@@ -132,6 +141,20 @@ export function ShortlistItem({
         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <button
             type="button"
+            onClick={() => setIsProposalModalOpen(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-2xs ${
+              hasSavedProposal
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+            }`}
+            title="Lập bộ hồ sơ đề xuất chiến dịch hoàn chỉnh (Meeting-Ready Proposal) sẵn sàng trình Sếp duyệt chi"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>{hasSavedProposal ? 'Mở Proposal' : 'Lập Proposal'}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
           >
@@ -201,6 +224,15 @@ export function ShortlistItem({
 
       {/* Timeline */}
       <WeeklyTimeline timeline={idea.timeline} />
+
+      {/* Modal Lập Proposal Trình Sếp (Task 8) */}
+      <ProposalModal
+        isOpen={isProposalModalOpen}
+        onClose={() => setIsProposalModalOpen(false)}
+        idea={idea}
+        context={context}
+        onProposalSaved={() => setHasSavedProposal(true)}
+      />
     </article>
   );
 }

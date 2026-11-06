@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MarketingIdea, CampaignInput } from '@/types/marketing';
 import { WeeklyTimeline } from './WeeklyTimeline';
-import { Bookmark, BookmarkCheck, Copy, Check, Users, DollarSign, Sparkles, RotateCcw } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Copy, Check, Users, DollarSign, Sparkles, RotateCcw, FileSpreadsheet } from 'lucide-react';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useCampaign } from '@/context/CampaignContext';
 import { useToast } from './Toast';
 import { formatIdeaSummary, copyToClipboard } from '@/lib/format-summary';
 import { RefineIdeaModal } from './RefineIdeaModal';
+import { ProposalModal } from './proposal/ProposalModal';
+import { getProposalByCampaignId } from '@/lib/proposal-storage';
 
 interface IdeaCardProps {
   idea: MarketingIdea;
@@ -22,6 +24,13 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
   const [isRefineModalOpen, setIsRefineModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [hasSavedProposal, setHasSavedProposal] = useState(false);
+
+  useEffect(() => {
+    const existing = getProposalByCampaignId(idea.id, idea.version || 1);
+    setHasSavedProposal(!!existing);
+  }, [idea.id, idea.version]);
 
   const currentVersion = idea.version || 1;
   const saved = isSaved(idea.id, currentVersion);
@@ -110,6 +119,20 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
         <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto shrink-0">
           <button
             type="button"
+            onClick={() => setIsProposalModalOpen(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-2xs ${
+              hasSavedProposal
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+            }`}
+            title="Lập bộ hồ sơ đề xuất chiến dịch hoàn chỉnh (Meeting-Ready Proposal) sẵn sàng trình Sếp duyệt chi"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>{hasSavedProposal ? 'Mở Proposal' : 'Lập Proposal'}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsRefineModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors cursor-pointer"
             title="Tinh chỉnh chiến dịch này bằng ngôn ngữ tự nhiên"
@@ -187,6 +210,15 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
         idea={idea}
         context={context}
         onApplyRefinedIdea={handleApplyRefinement}
+      />
+
+      {/* Modal Lập Proposal Trình Sếp (Task 8) */}
+      <ProposalModal
+        isOpen={isProposalModalOpen}
+        onClose={() => setIsProposalModalOpen(false)}
+        idea={idea}
+        context={context}
+        onProposalSaved={() => setHasSavedProposal(true)}
       />
     </article>
   );
