@@ -13,8 +13,27 @@ export interface ValidationOutputResult {
 const CHANNEL_SEMANTIC_ALIASES: Record<string, string[]> = {
   'referral': ['giới thiệu', 'mời bạn', 'chia sẻ', 'bạn bè', 'tri ân', 'mã mời', 'truyền miệng', 'wom', 'tích điểm', 'thưởng đôi'],
   'truyền miệng': ['giới thiệu', 'mời bạn', 'chia sẻ', 'bạn bè', 'tri ân', 'mã mời', 'referral', 'khách quen', 'tích điểm', 'truyền tai'],
-  'koc': ['review', 'reviewer', 'booking', 'gửi mẫu', 'trải nghiệm', 'kol', 'influencer', 'bài review', 'video review', 'đánh giá'],
-  'kol': ['koc', 'influencer', 'booking', 'đại sứ', 'gửi mẫu', 'review', 'người nổi tiếng'],
+  'koc': ['review', 'reviewer', 'booking', 'gửi mẫu', 'trải nghiệm', 'kol', 'influencer', 'bài review', 'video review', 'đánh giá', 'creator'],
+  'kol': ['koc', 'influencer', 'booking', 'đại sứ', 'gửi mẫu', 'review', 'người nổi tiếng', 'creator'],
+  'influencer': ['koc', 'kol', 'booking', 'review', 'người nổi tiếng', 'sáng tạo nội dung', 'creator', 'gửi mẫu'],
+  'cross': ['đối tác', 'hợp tác', 'chéo', 'liên minh', 'voucher', 'đổi quà', 'phi cạnh tranh', 'liên kết', 'barter', 'co-branding', 'chia sẻ khách', 'quán bên', 'tiệm', 'cửa hàng bạn'],
+  'promo': ['ưu đãi', 'khuyến mại', 'voucher', 'giảm giá', 'quà tặng', 'combo', 'đồng giá', 'tặng kèm', 'chiết khấu', 'quà', 'chương trình', 'đối tác', 'hợp tác', 'chéo'],
+  'cross-promo': ['đối tác', 'hợp tác', 'chéo', 'liên minh', 'voucher', 'đổi quà', 'phi cạnh tranh', 'liên kết', 'barter', 'co-branding', 'chia sẻ khách', 'posm'],
+  'hợp tác': ['đối tác', 'liên kết', 'chéo', 'liên minh', 'ký kết', 'thỏa thuận', 'đàm phán', 'chia sẻ', 'barter', 'đồng thương hiệu', 'quán', 'cửa hàng'],
+  'chéo': ['đối tác', 'liên kết', 'hợp tác', 'liên minh', 'voucher', 'đổi quà', 'chia sẻ khách', 'quán lân cận', 'cửa hàng bạn'],
+  'đối tác': ['hợp tác', 'liên kết', 'chéo', 'liên minh', 'ký kết', 'thỏa thuận', 'đàm phán', 'quán', 'cửa hàng', 'voucher'],
+  'posm': ['standee', 'tờ rơi', 'poster', 'voucher', 'quầy', 'kệ', 'cửa hàng', 'điểm bán', 'bàn', 'menu', 'in ấn', 'treo biển', 'quầy thu ngân'],
+  'standee': ['posm', 'điểm bán', 'quầy', 'cửa hàng', 'đặt bảng', 'in ấn', 'treo biển', 'tờ rơi'],
+  'ugc': ['thử thách', 'challenge', 'quay clip', 'chụp ảnh', 'hashtag', 'chia sẻ', 'bài dự thi', 'minigame', 'người dùng', 'video', 'bình chọn', 'lan tỏa', 'khách hàng'],
+  'thử thách': ['ugc', 'challenge', 'hashtag', 'tham gia', 'bài thi', 'quay', 'chụp', 'minigame', 'clip', 'video'],
+  'challenge': ['ugc', 'thử thách', 'hashtag', 'tham gia', 'bài thi', 'quay', 'chụp', 'minigame', 'clip', 'video'],
+  'livestream': ['live', 'phát trực tiếp', 'chốt đơn', 'live shopping', 'phiên live', 'lên sóng', 'giỏ hàng', 'stream'],
+  'live': ['livestream', 'phát trực tiếp', 'chốt đơn', 'phiên live', 'giỏ hàng', 'lên sóng'],
+  'community': ['hội nhóm', 'group', 'thảo luận', 'seeding', 'bình luận', 'cộng đồng', 'fan cứng', 'admin'],
+  'cộng đồng': ['group', 'hội nhóm', 'fanpage', 'seeding', 'thảo luận', 'chia sẻ', 'tương tác', 'bình luận'],
+  'seeding': ['bình luận', 'thảo luận', 'hội nhóm', 'group', 'diễn đàn', 'bài đăng', 'chia sẻ'],
+  'o2o': ['quét mã', 'qr', 'đổi quà', 'tại quán', 'cửa hàng', 'trực tiếp', 'offline', 'voucher', 'tại chỗ', 'ghé tiệm'],
+  'pr': ['báo chí', 'bài báo', 'thông cáo', 'phỏng vấn', 'báo điện tử', 'tin tức', 'truyền thông', 'báo mạng', 'bài viết'],
   'ads': ['quảng cáo', 'chạy ads', 'chiến dịch', 'giá thầu', 'cpm', 'cpc', 'pixel', 'tối ưu ads', 'target', 'retargeting', 'boost', 'trả phí'],
   'quảng cáo': ['ads', 'chạy', 'chiến dịch', 'giá thầu', 'pixel', 'tối ưu', 'target', 'trả phí'],
   'zalo': ['zalo oa', 'mini app', 'zns', 'tin nhắn', 'nhắn tin', 'chăm sóc khách', 'quét mã', 'qr'],
@@ -34,10 +53,15 @@ const CHANNEL_SEMANTIC_ALIASES: Record<string, string[]> = {
  */
 function checkChannelTimelineConsistency(idea: MarketingIdea): string[] {
   const issues: string[] = [];
+  
+  // Bao gồm cả tiêu đề tuần (week.title) và hoạt động (activities) của cả 4 tuần
   const timelineText = (idea.timeline || [])
-    .flatMap((w) => w.activities || [])
+    .flatMap((w) => [w.title || '', ...(w.activities || [])])
     .join(' ')
     .toLowerCase();
+  
+  const mainContentText = (idea.mainContent || '').toLowerCase();
+  const combinedContextText = `${timelineText} ${mainContentText}`;
 
   const stopWords = new Set(['kênh', 'qua', 'và', 'trên', 'tại', 'bằng', 'cho', 'của', 'marketing', 'chiến dịch', 'các', 'những', 'với']);
 
@@ -58,6 +82,7 @@ function checkChannelTimelineConsistency(idea: MarketingIdea): string[] {
     const searchTargets = new Set<string>();
     words.forEach((w) => searchTargets.add(w));
 
+    // Kiểm tra trực tiếp cả cụm hoặc từng từ trong bảng từ đồng nghĩa
     for (const [key, aliases] of Object.entries(CHANNEL_SEMANTIC_ALIASES)) {
       if (cleanChannel.includes(key)) {
         aliases.forEach((a) => searchTargets.add(a));
@@ -65,9 +90,11 @@ function checkChannelTimelineConsistency(idea: MarketingIdea): string[] {
     }
 
     // 4. Kiểm tra có ít nhất 1 từ khóa hoặc từ đồng nghĩa xuất hiện trong hoạt động timeline
-    const isCovered = searchTargets.size === 0 || Array.from(searchTargets).some((target) => timelineText.includes(target));
+    // Hoặc xuất hiện trong ngữ cảnh kết hợp (timeline + mainContent)
+    const isCoveredInTimeline = searchTargets.size === 0 || Array.from(searchTargets).some((target) => timelineText.includes(target));
+    const isCoveredInContext = Array.from(searchTargets).some((target) => combinedContextText.includes(target));
 
-    if (!isCovered) {
+    if (!isCoveredInTimeline && !isCoveredInContext) {
       issues.push(
         `Kênh "${channel}" được đề xuất nhưng không có hoạt động triển khai nào tương ứng trong 4 tuần timeline.`
       );

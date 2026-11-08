@@ -3,7 +3,23 @@
 import React, { useState, useEffect } from 'react';
 import { MarketingIdea, CampaignInput } from '@/types/marketing';
 import { WeeklyTimeline } from './WeeklyTimeline';
-import { Bookmark, BookmarkCheck, Copy, Check, Users, DollarSign, Sparkles, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import {
+  Bookmark,
+  BookmarkCheck,
+  Copy,
+  Check,
+  Users,
+  DollarSign,
+  Sparkles,
+  RotateCcw,
+  FileSpreadsheet,
+  ShieldCheck,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  FlaskConical,
+  AlertTriangle
+} from 'lucide-react';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useCampaign } from '@/context/CampaignContext';
 import { useToast } from './Toast';
@@ -11,6 +27,7 @@ import { formatIdeaSummary, copyToClipboard } from '@/lib/format-summary';
 import { RefineIdeaModal } from './RefineIdeaModal';
 import { ProposalModal } from './proposal/ProposalModal';
 import { getProposalByCampaignId } from '@/lib/proposal-storage';
+import { attachVerificationEvidence } from '@/lib/evidence-generator';
 
 interface IdeaCardProps {
   idea: MarketingIdea;
@@ -26,6 +43,9 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
   const [isRefineModalOpen, setIsRefineModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [hasSavedProposal, setHasSavedProposal] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
+
+  const evidence = idea.verificationEvidence || attachVerificationEvidence(idea, context as CampaignInput);
 
   useEffect(() => {
     const existing = getProposalByCampaignId(idea.id, idea.version || 1);
@@ -202,6 +222,123 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
 
       {/* Weekly Timeline (Feature 3) */}
       <WeeklyTimeline timeline={idea.timeline} />
+
+      {/* Căn cứ thực chứng & Kế hoạch thử nghiệm nhỏ (P1 - Mục 10.3) */}
+      <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden bg-slate-50/40">
+        <button
+          type="button"
+          onClick={() => setShowEvidence(!showEvidence)}
+          className="w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold text-slate-700 hover:bg-slate-100/70 transition-colors cursor-pointer"
+        >
+          <span className="flex items-center gap-2 flex-wrap">
+            <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <span>Căn cứ và cách kiểm chứng</span>
+            {evidence.hasCaseStudy ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
+                Case study: {evidence.caseStudy?.brandOrEntity}
+              </span>
+            ) : (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium border border-amber-200">
+                Thử nghiệm nhỏ (Chưa có case study)
+              </span>
+            )}
+          </span>
+          {showEvidence ? (
+            <ChevronUp className="w-4 h-4 text-slate-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-slate-400" />
+          )}
+        </button>
+
+        {showEvidence && (
+          <div className="p-3.5 sm:p-4 border-t border-slate-200 bg-white space-y-3.5 text-xs animate-fadeIn">
+            {/* 1. Case Study Thực Tế (nếu có) */}
+            {evidence.hasCaseStudy && evidence.caseStudy && (
+              <div className="p-3 rounded-lg border border-indigo-100 bg-indigo-50/30 space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>📌 Tham chiếu thực chiến:</span>
+                    <span className="text-indigo-900 font-extrabold">{evidence.caseStudy.brandOrEntity}</span>
+                  </div>
+                  <a
+                    href={evidence.caseStudy.source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                  >
+                    <span>Nguồn: {evidence.caseStudy.source.publisher}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+
+                <div className="text-slate-700 leading-relaxed">
+                  <span className="font-semibold text-slate-900">Hoạt động & Kết quả đã công bố: </span>
+                  {evidence.caseStudy.publishedResults}
+                </div>
+
+                <div className="text-[11px] text-slate-500 bg-white/80 p-2 rounded border border-indigo-100/60 leading-tight">
+                  <span className="font-semibold text-amber-800">⚠️ Giới hạn khi áp dụng: </span>
+                  {evidence.caseStudy.applicabilityScope.limitations}
+                </div>
+              </div>
+            )}
+
+            {/* Thông báo nếu chưa có case study tương đồng */}
+            {!evidence.hasCaseStudy && (
+              <div className="p-2.5 rounded-lg border border-amber-200 bg-amber-50/50 flex items-start gap-2 text-amber-800">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-[11px] leading-relaxed">
+                  <span className="font-semibold">Lưu ý minh bạch: </span>
+                  {evidence.missingCaseStudyNotice || 'Chưa có case study tương đồng được xác minh nguồn trong kho dữ liệu tham chiếu.'}{' '}
+                  Do đó, bạn nên thực hiện kế hoạch thử nghiệm nhỏ dưới đây trước khi duyệt chi lớn.
+                </div>
+              </div>
+            )}
+
+            {/* 2. Kế hoạch Thử Nghiệm Nhỏ (Mini-Experiment) */}
+            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2.5">
+              <div className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
+                <FlaskConical className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Kế hoạch thử nghiệm nhỏ (Khuyên dùng trước khi duyệt chi)</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div>
+                  <span className="font-semibold text-slate-700">Giả thuyết: </span>
+                  <p className="text-slate-600 mt-0.5">{evidence.miniExperiment.hypothesis}</p>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700">Hành động & Nguồn lực: </span>
+                  <p className="text-slate-600 mt-0.5">
+                    {evidence.miniExperiment.actionToTest} ({evidence.miniExperiment.timeframeAndResources})
+                  </p>
+                </div>
+              </div>
+
+              {/* Tiêu chí Stop/Go */}
+              <div className="pt-1 border-t border-slate-200/80">
+                <span className="font-semibold text-slate-700 text-[11px] block mb-1">
+                  Ngưỡng đánh giá kết quả (Stop / Go Criteria):
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-[10px]">
+                  <div className="p-1.5 rounded bg-emerald-50 border border-emerald-200/60 text-emerald-900">
+                    <span className="font-bold">✓ Đi tiếp: </span>
+                    {evidence.miniExperiment.decisionCriteria.proceed}
+                  </div>
+                  <div className="p-1.5 rounded bg-amber-50 border border-amber-200/60 text-amber-900">
+                    <span className="font-bold">⚡ Điều chỉnh: </span>
+                    {evidence.miniExperiment.decisionCriteria.pivot}
+                  </div>
+                  <div className="p-1.5 rounded bg-rose-50 border border-rose-200/60 text-rose-900">
+                    <span className="font-bold">✕ Dừng lại: </span>
+                    {evidence.miniExperiment.decisionCriteria.stop}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal Tinh chỉnh AI (Mục 2.1) */}
       <RefineIdeaModal

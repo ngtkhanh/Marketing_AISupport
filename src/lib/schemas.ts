@@ -57,71 +57,110 @@ export function hasValidWordCount(text: string, minWords = 2): boolean {
   return words.length >= minWords;
 }
 
+export const industryFieldSchema = z
+  .string()
+  .transform(sanitizeString)
+  .refine((val) => val.length >= 2 && val.length <= 50, {
+    message: 'Vui lòng nhập ngành hàng (từ 2–50 ký tự)'
+  })
+  .refine((val) => HAS_LETTER_REGEX.test(val), {
+    message: 'Ngành hàng nên chứa ký tự chữ cái rõ nghĩa (VD: F&B, Thời trang...)'
+  })
+  .refine((val) => !hasRepeatedChars(val), {
+    message: 'Ngành hàng dường như chứa ký tự lặp bất thường. Bạn thử nhập ngành hàng cụ thể nhé (VD: F&B, Thời trang, Mỹ phẩm)'
+  })
+  .refine((val) => !isGibberish(val), {
+    message: 'Ngành hàng có vẻ chưa rõ nghĩa, bạn thử chọn hoặc mô tả cụ thể hơn nhé (VD: F&B, Thời trang, Công nghệ...)'
+  });
+
+export const productNameFieldSchema = z
+  .string()
+  .transform(sanitizeString)
+  .refine((val) => val.length >= 2 && val.length <= 80, {
+    message: 'Vui lòng nhập tên sản phẩm (từ 2–80 ký tự)'
+  })
+  .refine((val) => HAS_LETTER_REGEX.test(val), {
+    message: 'Tên sản phẩm nên chứa chữ cái rõ nghĩa (VD: Trà sữa kem trứng)'
+  })
+  .refine((val) => !hasRepeatedChars(val), {
+    message: 'Tên sản phẩm dường như chứa ký tự lặp bất thường. Bạn thử mô tả cụ thể hơn nhé (VD: Trà sữa matcha đóng chai)'
+  })
+  .refine((val) => !isGibberish(val), {
+    message: 'Tên sản phẩm có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé (VD: Trà sữa matcha đóng chai, Áo thun unisex)'
+  });
+
+export const budgetLevelFieldSchema = z.enum(['low', 'medium', 'high'], {
+  errorMap: () => ({ message: 'Vui lòng chọn mức ngân sách (Thấp / Trung bình / Cao)' })
+});
+
+export const objectiveFieldSchema = z
+  .string()
+  .transform(sanitizeString)
+  .refine((val) => val.length >= 5 && val.length <= 200, {
+    message: 'Vui lòng nhập mục tiêu chiến dịch (từ 5–200 ký tự)'
+  })
+  .refine((val) => HAS_LETTER_REGEX.test(val), {
+    message: 'Mục tiêu chiến dịch nên chứa chữ cái rõ nghĩa'
+  })
+  .refine((val) => !hasRepeatedChars(val), {
+    message: 'Mục tiêu dường như chứa ký tự lặp bất thường. Bạn thử diễn đạt rõ hơn nhé (VD: Tăng độ nhận diện thương hiệu)'
+  })
+  .refine((val) => !isGibberish(val), {
+    message: 'Mục tiêu chiến dịch có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé (VD: Tăng nhận diện thương hiệu, Kéo khách tới quán...)'
+  })
+  .refine((val) => hasValidWordCount(val, 2), {
+    message: 'Mục tiêu chiến dịch nên có ít nhất 2 từ để AI gợi ý đúng nhất nhé (VD: Tăng nhận diện thương hiệu, Kéo khách đến quán...)'
+  });
+
+export const additionalNotesFieldSchema = z
+  .string()
+  .optional()
+  .transform((val) => (val ? sanitizeString(val) : ''))
+  .refine((val) => val.length <= 300, {
+    message: 'Ghi chú bổ sung tối đa 300 ký tự'
+  })
+  .refine((val) => !val || !hasRepeatedChars(val), {
+    message: 'Ghi chú bổ sung chứa ký tự lặp bất thường, bạn vui lòng kiểm tra lại nhé'
+  })
+  .refine((val) => !val || !isGibberish(val), {
+    message: 'Ghi chú bổ sung có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé'
+  });
+
+// Schema cho từng bước của Wizard 3 bước (P1)
+export const step1Schema = z.object({
+  industry: industryFieldSchema,
+  productName: productNameFieldSchema
+});
+
+export const step2Schema = z.object({
+  objective: objectiveFieldSchema,
+  targetAudiencePrompt: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  keyDifferentiator: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined))
+});
+
+export const step3Schema = z.object({
+  budgetLevel: budgetLevelFieldSchema,
+  additionalNotes: additionalNotesFieldSchema,
+  sellingArea: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  productPrice: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  existingChannels: z.array(z.string()).optional(),
+  availableResources: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  specificBudgetVnd: z.number().optional()
+});
+
 export const campaignInputSchema = z.object({
-  industry: z
-    .string()
-    .transform(sanitizeString)
-    .refine((val) => val.length >= 2 && val.length <= 50, {
-      message: 'Vui lòng nhập ngành hàng (từ 2–50 ký tự)'
-    })
-    .refine((val) => HAS_LETTER_REGEX.test(val), {
-      message: 'Ngành hàng nên chứa ký tự chữ cái rõ nghĩa (VD: F&B, Thời trang...)'
-    })
-    .refine((val) => !hasRepeatedChars(val), {
-      message: 'Ngành hàng dường như chứa ký tự lặp bất thường. Bạn thử nhập ngành hàng cụ thể nhé (VD: F&B, Thời trang, Mỹ phẩm)'
-    })
-    .refine((val) => !isGibberish(val), {
-      message: 'Ngành hàng có vẻ chưa rõ nghĩa, bạn thử chọn hoặc mô tả cụ thể hơn nhé (VD: F&B, Thời trang, Công nghệ...)'
-    }),
-  productName: z
-    .string()
-    .transform(sanitizeString)
-    .refine((val) => val.length >= 2 && val.length <= 80, {
-      message: 'Vui lòng nhập tên sản phẩm (từ 2–80 ký tự)'
-    })
-    .refine((val) => HAS_LETTER_REGEX.test(val), {
-      message: 'Tên sản phẩm nên chứa chữ cái rõ nghĩa (VD: Trà sữa kem trứng)'
-    })
-    .refine((val) => !hasRepeatedChars(val), {
-      message: 'Tên sản phẩm dường như chứa ký tự lặp bất thường. Bạn thử mô tả cụ thể hơn nhé (VD: Trà sữa matcha đóng chai)'
-    })
-    .refine((val) => !isGibberish(val), {
-      message: 'Tên sản phẩm có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé (VD: Trà sữa matcha đóng chai, Áo thun unisex)'
-    }),
-  budgetLevel: z.enum(['low', 'medium', 'high'], {
-    errorMap: () => ({ message: 'Vui lòng chọn mức ngân sách (Thấp / Trung bình / Cao)' })
-  }),
-  objective: z
-    .string()
-    .transform(sanitizeString)
-    .refine((val) => val.length >= 5 && val.length <= 200, {
-      message: 'Vui lòng nhập mục tiêu chiến dịch (từ 5–200 ký tự)'
-    })
-    .refine((val) => HAS_LETTER_REGEX.test(val), {
-      message: 'Mục tiêu chiến dịch nên chứa chữ cái rõ nghĩa'
-    })
-    .refine((val) => !hasRepeatedChars(val), {
-      message: 'Mục tiêu dường như chứa ký tự lặp bất thường. Bạn thử diễn đạt rõ hơn nhé (VD: Tăng độ nhận diện thương hiệu)'
-    })
-    .refine((val) => !isGibberish(val), {
-      message: 'Mục tiêu chiến dịch có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé (VD: Tăng nhận diện thương hiệu, Kéo khách tới quán...)'
-    })
-    .refine((val) => hasValidWordCount(val, 2), {
-      message: 'Mục tiêu chiến dịch nên có ít nhất 2 từ để AI gợi ý đúng nhất nhé (VD: Tăng nhận diện thương hiệu, Kéo khách đến quán...)'
-    }),
-  additionalNotes: z
-    .string()
-    .optional()
-    .transform((val) => (val ? sanitizeString(val) : ''))
-    .refine((val) => val.length <= 300, {
-      message: 'Ghi chú bổ sung tối đa 300 ký tự'
-    })
-    .refine((val) => !val || !hasRepeatedChars(val), {
-      message: 'Ghi chú bổ sung chứa ký tự lặp bất thường, bạn vui lòng kiểm tra lại nhé'
-    })
-    .refine((val) => !val || !isGibberish(val), {
-      message: 'Ghi chú bổ sung có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé'
-    })
+  industry: industryFieldSchema,
+  productName: productNameFieldSchema,
+  budgetLevel: budgetLevelFieldSchema,
+  objective: objectiveFieldSchema,
+  additionalNotes: additionalNotesFieldSchema,
+  targetAudiencePrompt: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  sellingArea: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  productPrice: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  keyDifferentiator: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  existingChannels: z.array(z.string()).optional(),
+  availableResources: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+  specificBudgetVnd: z.number().optional()
 });
 
 export const weeklyPlanSchema = z.object({

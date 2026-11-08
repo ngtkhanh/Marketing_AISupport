@@ -37,6 +37,11 @@ RÀNG BUỘC VỀ CẤU TRÚC ĐẦU RA:
   + targetAudience: Chân dung khách hàng mục tiêu của ý tưởng.
   + timeline: Đúng 04 tuần tóm tắt (week từ 1 đến 4). Mỗi tuần gồm title và activities (mảng 2-3 hoạt động hành động cụ thể, súc tích).
 
+RÀNG BUỘC NHẤT QUÁN KÊNH & TIMELINE (BẮT BUỘC):
+- Mọi kênh bạn đưa vào mảng 'channels' đều PHẢI có ít nhất 1 hoạt động triển khai tương ứng trong các tuần của timeline.
+- Ví dụ: nếu có kênh 'Hợp tác chéo (Cross-promo)', timeline tuần 1 hoặc tuần 2 phải có hoạt động làm việc với đối tác, phát hành voucher chéo hoặc đặt standee liên kết; nếu có kênh 'TikTok', timeline phải có hoạt động quay dựng video ngắn hoặc livestream.
+- Tuyệt đối không liệt kê một kênh vào 'channels' mà 4 tuần timeline không hề có hành động nào liên quan.
+
 RÀNG BUỘC NỘI DUNG & AN TOÀN:
 - Toàn bộ bằng tiếng Việt chuẩn ngữ pháp, súc tích, mang tính thực thi cao.
 - Không bịa đặt số liệu thị trường hay hứa hẹn cam kết doanh thu vô căn cứ.

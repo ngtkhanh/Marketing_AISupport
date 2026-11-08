@@ -4,6 +4,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { generateMarketingIdeasWithGemini } from '@/lib/ai/gemini';
 import { validateCampaignInputSemantics } from '@/lib/ai/guardrail';
 import { getFallbackMarketingIdeas } from '@/lib/ai/mock-data';
+import { attachVerificationEvidence } from '@/lib/evidence-generator';
 import { CampaignInput } from '@/types/marketing';
 
 export const dynamic = 'force-dynamic';
@@ -134,11 +135,16 @@ export async function POST(req: NextRequest) {
     const aiResult = await generateMarketingIdeasWithGemini(campaignInput);
 
     if (aiResult.ok) {
+      const ideasWithEvidence = aiResult.ideas.map((idea) => ({
+        ...idea,
+        verificationEvidence: idea.verificationEvidence || attachVerificationEvidence(idea, campaignInput)
+      }));
+
       return NextResponse.json({
         ok: true,
         source: 'ai',
         model: aiResult.model,
-        ideas: aiResult.ideas
+        ideas: ideasWithEvidence
       });
     }
 

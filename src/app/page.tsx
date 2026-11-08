@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { CampaignInput } from '@/types/marketing';
 import { CampaignForm } from '@/components/CampaignForm';
+import { SelfRunningDemo } from '@/components/SelfRunningDemo';
 import { IdeaCard } from '@/components/IdeaCard';
 import { SkeletonIdeaList } from '@/components/Skeleton';
 import { AILoadingStatus } from '@/components/AILoadingStatus';
@@ -134,18 +135,28 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* Form nhập thông tin chiến dịch (Feature 1) */}
+      {/* Vùng tương tác chính: Split Screen 2 cột trên Desktop (Trái: Form - Phải: Demo Screencast) */}
       <section className="print:hidden">
-        <CampaignForm
-          onSubmit={handleGenerate}
-          isLoading={isLoading}
-          serverFieldErrors={serverFieldErrors}
-          onReset={() => {
-            setErrorMessage(null);
-            setErrorCode(undefined);
-            setServerFieldErrors({});
-          }}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* Cột Trái: Form nhập liệu Wizard 3 bước */}
+          <div className="lg:col-span-7">
+            <CampaignForm
+              onSubmit={handleGenerate}
+              isLoading={isLoading}
+              serverFieldErrors={serverFieldErrors}
+              onReset={() => {
+                setErrorMessage(null);
+                setErrorCode(undefined);
+                setServerFieldErrors({});
+              }}
+            />
+          </div>
+
+          {/* Cột Phải: Demo Screencast góc nhìn người dùng thật */}
+          <div className="lg:col-span-5 lg:sticky lg:top-8">
+            <SelfRunningDemo />
+          </div>
+        </div>
       </section>
 
       {/* Vùng hiển thị lỗi (nếu có) */}

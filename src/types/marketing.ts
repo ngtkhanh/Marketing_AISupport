@@ -1,6 +1,18 @@
+import type { IdeaVerificationEvidence } from './case-study';
+
 export type BudgetLevel = 'low' | 'medium' | 'high';
 
-export interface CampaignInput {
+export interface CampaignContextualInput {
+  targetAudiencePrompt?: string; // Khách hàng muốn tiếp cận (hoặc "Chưa xác định")
+  sellingArea?: string; // Khu vực bán (Toàn quốc, TP.HCM, Hà Nội...)
+  productPrice?: string; // Giá sản phẩm/dịch vụ
+  keyDifferentiator?: string; // Điểm khác biệt/USP
+  existingChannels?: string[]; // Kênh hiện có
+  availableResources?: string; // Nguồn lực/nhân sự sẵn có
+  specificBudgetVnd?: number; // Ngân sách dự chi cụ thể (VNĐ)
+}
+
+export interface CampaignInput extends CampaignContextualInput {
   industry: string;
   productName: string;
   budgetLevel: BudgetLevel;
@@ -42,6 +54,7 @@ export interface MarketingIdea {
   timeline: WeeklyPlan[]; // Đúng 4 tuần tuần tự
   version?: number; // Phiên bản (1, 2, 3...)
   refinementHistory?: RefinementHistoryEntry[]; // Lịch sử các lần tinh chỉnh
+  verificationEvidence?: IdeaVerificationEvidence; // Căn cứ thực chứng & Kế hoạch thử nghiệm nhỏ (P1)
 }
 
 export interface RefineIdeaRequest {
@@ -141,7 +154,8 @@ export interface CompareStrategiesError {
   };
 }
 
-// Re-export toàn bộ kiểu dữ liệu của Meeting-Ready Campaign Proposal
+// Re-export toàn bộ kiểu dữ liệu của Meeting-Ready Campaign Proposal & Case Study
 export * from './proposal';
+export * from './case-study';
 
 

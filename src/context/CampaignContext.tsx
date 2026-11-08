@@ -9,6 +9,12 @@ interface CampaignFormData {
   budgetLevel: BudgetLevel;
   objective: string;
   additionalNotes: string;
+  targetAudiencePrompt?: string;
+  sellingArea?: string;
+  productPrice?: string;
+  keyDifferentiator?: string;
+  availableResources?: string;
+  specificBudgetVnd?: number;
 }
 
 interface CampaignContextType {
@@ -33,6 +39,12 @@ const DEFAULT_FORM_DATA: CampaignFormData = {
   budgetLevel: 'medium',
   objective: '',
   additionalNotes: '',
+  targetAudiencePrompt: '',
+  sellingArea: '',
+  productPrice: '',
+  keyDifferentiator: '',
+  availableResources: '',
+  specificBudgetVnd: undefined,
 };
 
 const CampaignContext = createContext<CampaignContextType | undefined>(undefined);

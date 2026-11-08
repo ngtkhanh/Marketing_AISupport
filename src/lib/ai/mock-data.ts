@@ -1,5 +1,6 @@
-import { CampaignInput, MarketingIdea } from '@/types/marketing';
+import type { CampaignInput, MarketingIdea } from '@/types/marketing';
 import { BUDGET_CONFIGS } from '../config/budget';
+import { attachVerificationEvidence } from '../evidence-generator';
 
 /**
  * Sinh dữ liệu mẫu dự phòng chất lượng cao khi xảy ra sự cố hạ tầng AI (429, timeout, mất mạng)
@@ -8,9 +9,10 @@ import { BUDGET_CONFIGS } from '../config/budget';
 export function getFallbackMarketingIdeas(input: CampaignInput): MarketingIdea[] {
   const { industry, productName, budgetLevel, objective } = input;
   const config = BUDGET_CONFIGS[budgetLevel];
+  let rawIdeas: MarketingIdea[] = [];
 
   if (budgetLevel === 'low') {
-    return [
+    rawIdeas = [
       {
         id: crypto.randomUUID(),
         title: `Thử Thách UGC: Bật Năng Lượng Cùng ${productName}`,
@@ -247,10 +249,8 @@ export function getFallbackMarketingIdeas(input: CampaignInput): MarketingIdea[]
         ]
       }
     ];
-  }
-
-  if (budgetLevel === 'medium') {
-    return [
+  } else if (budgetLevel === 'medium') {
+    rawIdeas = [
       {
         id: crypto.randomUUID(),
         title: `Chiến Dịch Chuyển Đổi Kép: Trải Nghiệm Mới Cùng ${productName}`,
@@ -487,10 +487,9 @@ export function getFallbackMarketingIdeas(input: CampaignInput): MarketingIdea[]
         ]
       }
     ];
-  }
-
-  // Budget High (> 100M)
-  return [
+  } else {
+    // Budget High (> 100M)
+    rawIdeas = [
     {
       id: crypto.randomUUID(),
       title: `Chiến Dịch IMC Tổng Lực: Khởi Sắc Kỷ Nguyên Cùng ${productName}`,
@@ -727,6 +726,12 @@ export function getFallbackMarketingIdeas(input: CampaignInput): MarketingIdea[]
       ]
     }
   ];
+  }
+
+  return rawIdeas.map((idea) => ({
+    ...idea,
+    verificationEvidence: attachVerificationEvidence(idea, input)
+  }));
 }
 
 /**

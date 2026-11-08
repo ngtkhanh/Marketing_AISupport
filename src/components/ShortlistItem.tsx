@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { ShortlistEntry } from '@/types/marketing';
 import { WeeklyTimeline } from './WeeklyTimeline';
-import { Copy, Trash2, Check, DollarSign, Calendar, AlertCircle, Star, Edit3, FileSpreadsheet } from 'lucide-react';
+import { Copy, Trash2, Check, DollarSign, Calendar, AlertCircle, Star, Edit3, FileSpreadsheet, ShieldCheck, ChevronDown, ChevronUp, ExternalLink, FlaskConical } from 'lucide-react';
 import { formatIdeaSummary, copyToClipboard } from '@/lib/format-summary';
 import { useToast } from './Toast';
 import { ProposalModal } from './proposal/ProposalModal';
 import { getProposalByCampaignId } from '@/lib/proposal-storage';
+import { attachVerificationEvidence } from '@/lib/evidence-generator';
 
 interface ShortlistItemProps {
   entry: ShortlistEntry;
@@ -30,6 +31,9 @@ export function ShortlistItem({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [hasSavedProposal, setHasSavedProposal] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
+
+  const evidence = idea.verificationEvidence || attachVerificationEvidence(idea, context as any);
 
   useEffect(() => {
     const existing = getProposalByCampaignId(idea.id, idea.version || 1);
@@ -224,6 +228,72 @@ export function ShortlistItem({
 
       {/* Timeline */}
       <WeeklyTimeline timeline={idea.timeline} />
+
+      {/* Căn cứ thực chứng & Kế hoạch thử nghiệm nhỏ (P1) */}
+      <div className="rounded-lg border border-slate-200 overflow-hidden bg-slate-50/40">
+        <button
+          type="button"
+          onClick={() => setShowEvidence(!showEvidence)}
+          className="w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold text-slate-700 hover:bg-slate-100/70 transition-colors cursor-pointer"
+        >
+          <span className="flex items-center gap-2 flex-wrap">
+            <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <span>Căn cứ và cách kiểm chứng</span>
+            {evidence.hasCaseStudy ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
+                Case study: {evidence.caseStudy?.brandOrEntity}
+              </span>
+            ) : (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium border border-amber-200">
+                Thử nghiệm nhỏ (Chưa có case study)
+              </span>
+            )}
+          </span>
+          {showEvidence ? (
+            <ChevronUp className="w-4 h-4 text-slate-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-slate-400" />
+          )}
+        </button>
+
+        {showEvidence && (
+          <div className="p-3.5 border-t border-slate-200 bg-white space-y-3 text-xs animate-fadeIn">
+            {evidence.hasCaseStudy && evidence.caseStudy && (
+              <div className="p-2.5 rounded-lg border border-indigo-100 bg-indigo-50/30 space-y-1.5">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="font-bold text-slate-900 text-xs">
+                    📌 Tham chiếu: <span className="text-indigo-900 font-extrabold">{evidence.caseStudy.brandOrEntity}</span>
+                  </span>
+                  <a
+                    href={evidence.caseStudy.source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                  >
+                    <span>Nguồn: {evidence.caseStudy.source.publisher}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="text-slate-700 leading-relaxed text-[11px]">
+                  {evidence.caseStudy.publishedResults}
+                </div>
+              </div>
+            )}
+
+            <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5">
+              <div className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
+                <FlaskConical className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Thử nghiệm nhỏ:</span>
+              </div>
+              <p className="text-slate-600 text-[11px]">{evidence.miniExperiment.hypothesis}</p>
+              <p className="text-slate-600 text-[11px]">
+                <span className="font-semibold text-slate-700">Hành động: </span>
+                {evidence.miniExperiment.actionToTest} ({evidence.miniExperiment.timeframeAndResources})
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal Lập Proposal Trình Sếp (Task 8) */}
       <ProposalModal

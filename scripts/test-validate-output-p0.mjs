@@ -99,5 +99,29 @@ assert.strictEqual(
   `Kênh "Truyền miệng (Referral)" phải nhận diện được hoạt động "giới thiệu bạn bè" và "mời bạn", errors: ${synonymResult.errors.join('; ')}`
 );
 
+// 5. Kiểm tra trường hợp Cross-promo (Hợp tác chéo quán lân cận phát voucher đối tác)
+const crossPromoIdea = {
+  id: 'idea_cross_promo',
+  title: 'Liên Minh Quán Cafe & Tiệm Bánh Local',
+  tagline: 'Trọn vị ngọt ngào – Nhân đôi niềm vui',
+  channels: ['Cross-promo', 'POSM điểm bán', 'Instagram Stories'],
+  mainContent: 'Hợp tác chéo với 3 quán cafe và tiệm bánh lân cận để chia sẻ tệp khách hàng chung qua voucher và quà tặng mẫu.',
+  estimatedBudget: '8.000.000 VNĐ',
+  targetAudience: 'Giới trẻ và dân văn phòng',
+  timeline: [
+    { week: 1, title: 'Đàm phán liên minh', activities: ['Gặp gỡ 3 chủ quán đối tác lân cận', 'Thống nhất cơ chế đổi voucher chéo'] },
+    { week: 2, title: 'Triển khai điểm bán', activities: ['In 500 voucher ưu đãi và đặt standee tại quầy thu ngân đối tác', 'Đăng story Instagram giới thiệu'] },
+    { week: 3, title: 'Đón tiếp khách đổi quà', activities: ['Phục vụ khách mang voucher từ quán bạn sang', 'Tặng thẻ tích điểm'] },
+    { week: 4, title: 'Tổng kết và đối soát', activities: ['Đối soát lượng voucher quy đổi giữa các bên', 'Đánh giá tỷ lệ khách mới ghé tiệm'] }
+  ]
+};
+
+const crossPromoResult = validateSingleIdeaMarketingOutput(crossPromoIdea, 'low');
+assert.strictEqual(
+  crossPromoResult.valid,
+  true,
+  `Kênh "Cross-promo" phải được nhận diện thành công qua các hoạt động đối tác/voucher chéo, errors: ${crossPromoResult.errors.join('; ')}`
+);
+
 console.log('✅ Task 5 Test Passed: Output consistency validation verified!');
 
