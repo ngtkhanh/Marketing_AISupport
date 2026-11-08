@@ -15,6 +15,9 @@ interface CampaignFormData {
   keyDifferentiator?: string;
   availableResources?: string;
   specificBudgetVnd?: number;
+  brandToneAdjectives?: string[]; // 3 tính từ giọng thương hiệu (Mục 5)
+  permittedClaims?: string; // Bằng chứng / cam kết cho phép
+  wordsToAvoid?: string; // Từ ngữ cần tránh
 }
 
 interface CampaignContextType {
@@ -45,6 +48,9 @@ const DEFAULT_FORM_DATA: CampaignFormData = {
   keyDifferentiator: '',
   availableResources: '',
   specificBudgetVnd: undefined,
+  brandToneAdjectives: [],
+  permittedClaims: '',
+  wordsToAvoid: '',
 };
 
 const CampaignContext = createContext<CampaignContextType | undefined>(undefined);

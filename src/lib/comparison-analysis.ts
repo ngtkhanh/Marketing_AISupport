@@ -1,4 +1,4 @@
-import { MarketingIdea, CampaignInput, StrategyEvaluation, ShortlistEntry, AICMOVerdict } from '@/types/marketing';
+import type { MarketingIdea, CampaignInput, StrategyEvaluation, ShortlistEntry, AICMOVerdict } from '@/types/marketing';
 
 /**
  * Phân tích định tính minh bạch cho từng phương án chiến lược.

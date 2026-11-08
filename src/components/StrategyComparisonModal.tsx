@@ -586,7 +586,94 @@ export function StrategyComparisonModal({
                 })}
               </tr>
 
-              {/* Row 3: Khách hàng mục tiêu */}
+              {/* Row 3: Nguồn lực cần có & Độ phức tạp (Đưa lên trước theo Mục 7) */}
+              <tr>
+                <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
+                  <div className="flex items-center gap-1.5">
+                    <Wrench className="w-4 h-4 text-slate-700" />
+                    <span>Nguồn lực cần có</span>
+                  </div>
+                </td>
+                {evaluations.map((ev, idx) => {
+                  const isWinner = cmoVerdict?.recommendedWinner.campaignId === entries[idx].id;
+                  return (
+                    <td
+                      key={entries[idx].id}
+                      className={`p-3 align-top space-y-2 ${
+                        entries[idx].isPrimary
+                          ? 'bg-emerald-50/30 border-x-2 border-emerald-400'
+                          : isWinner
+                          ? 'bg-amber-50/20 border-x-2 border-amber-300'
+                          : ''
+                      }`}
+                    >
+                      <div>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                            ev.complexityLevel === 'Thấp'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : ev.complexityLevel === 'Trung bình'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          Mức độ: {ev.complexityLevel}
+                        </span>
+                        <p className="text-xs text-slate-600 leading-snug mt-1">{ev.complexityReason}</p>
+                      </div>
+                      <ul className="text-xs text-slate-700 space-y-1 list-disc pl-3.5 leading-snug pt-1 border-t border-slate-100">
+                        {ev.requiredResources.map((res, i) => (
+                          <li key={i}>{res}</li>
+                        ))}
+                      </ul>
+                    </td>
+                  );
+                })}
+              </tr>
+
+              {/* Row 4: Rủi ro chính & Điểm đánh đổi (Mục 7) */}
+              <tr>
+                <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
+                  <div className="flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span>Rủi ro & Phòng ngừa</span>
+                  </div>
+                </td>
+                {evaluations.map((ev, idx) => {
+                  const isWinner = cmoVerdict?.recommendedWinner.campaignId === entries[idx].id;
+                  return (
+                    <td
+                      key={entries[idx].id}
+                      className={`p-3 align-top space-y-1.5 ${
+                        entries[idx].isPrimary
+                          ? 'bg-emerald-50/30 border-x-2 border-emerald-400'
+                          : isWinner
+                          ? 'bg-amber-50/20 border-x-2 border-amber-300'
+                          : ''
+                      }`}
+                    >
+                      <div>
+                        <span className="font-bold text-[11px] uppercase tracking-wider text-amber-800">Rủi ro:</span>
+                        <ul className="text-xs text-slate-700 space-y-0.5 list-disc pl-3.5 leading-snug mt-0.5">
+                          {ev.keyRisks.map((risk, i) => (
+                            <li key={i}>{risk}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="pt-1 border-t border-slate-100">
+                        <span className="font-bold text-[11px] uppercase tracking-wider text-emerald-800">Giải pháp:</span>
+                        <ul className="text-xs text-slate-700 space-y-0.5 list-disc pl-3.5 leading-snug mt-0.5">
+                          {ev.mitigationTips.map((tip, i) => (
+                            <li key={i}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+
+              {/* Row 5: Khách hàng mục tiêu */}
               <tr>
                 <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
                   <div className="flex items-center gap-1.5">
@@ -613,7 +700,7 @@ export function StrategyComparisonModal({
                 })}
               </tr>
 
-              {/* Row 4: Cốt lõi chiến lược */}
+              {/* Row 6: Cốt lõi chiến lược */}
               <tr>
                 <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
                   <div className="flex items-center gap-1.5">
@@ -642,7 +729,7 @@ export function StrategyComparisonModal({
                 })}
               </tr>
 
-              {/* Row 5: Kế hoạch 4 tuần */}
+              {/* Row 7: Kế hoạch 4 tuần */}
               <tr>
                 <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
                   <div className="flex items-center gap-1.5">
@@ -673,117 +760,6 @@ export function StrategyComparisonModal({
                             </p>
                           </div>
                         ))}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Row 6: Độ phức tạp thực thi (Định tính) */}
-              <tr>
-                <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
-                  <div className="flex items-center gap-1.5">
-                    <Wrench className="w-4 h-4 text-slate-600" />
-                    <span>Độ phức tạp thực thi</span>
-                  </div>
-                </td>
-                {evaluations.map((ev, idx) => {
-                  const isWinner = cmoVerdict?.recommendedWinner.campaignId === entries[idx].id;
-                  return (
-                    <td
-                      key={entries[idx].id}
-                      className={`p-3 align-top space-y-1 ${
-                        entries[idx].isPrimary
-                          ? 'bg-emerald-50/30 border-x-2 border-emerald-400'
-                          : isWinner
-                          ? 'bg-amber-50/20 border-x-2 border-amber-300'
-                          : ''
-                      }`}
-                    >
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
-                          ev.complexityLevel === 'Thấp'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : ev.complexityLevel === 'Trung bình'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}
-                      >
-                        Mức độ: {ev.complexityLevel}
-                      </span>
-                      <p className="text-xs text-slate-600 leading-snug">{ev.complexityReason}</p>
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Row 7: Nguồn lực cần chuẩn bị */}
-              <tr>
-                <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
-                  <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-indigo-600" />
-                    <span>Nguồn lực cần chuẩn bị</span>
-                  </div>
-                </td>
-                {evaluations.map((ev, idx) => {
-                  const isWinner = cmoVerdict?.recommendedWinner.campaignId === entries[idx].id;
-                  return (
-                    <td
-                      key={entries[idx].id}
-                      className={`p-3 align-top ${
-                        entries[idx].isPrimary
-                          ? 'bg-emerald-50/30 border-x-2 border-emerald-400'
-                          : isWinner
-                          ? 'bg-amber-50/20 border-x-2 border-amber-300'
-                          : ''
-                      }`}
-                    >
-                      <ul className="text-xs text-slate-700 space-y-1 list-disc pl-3.5 leading-snug">
-                        {ev.requiredResources.map((res, i) => (
-                          <li key={i}>{res}</li>
-                        ))}
-                      </ul>
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Row 8: Rủi ro & Phòng ngừa */}
-              <tr>
-                <td className="p-3 font-semibold text-slate-600 bg-slate-50/50 align-top">
-                  <div className="flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <span>Rủi ro chính & Phòng tránh</span>
-                  </div>
-                </td>
-                {evaluations.map((ev, idx) => {
-                  const isWinner = cmoVerdict?.recommendedWinner.campaignId === entries[idx].id;
-                  return (
-                    <td
-                      key={entries[idx].id}
-                      className={`p-3 align-top space-y-2 ${
-                        entries[idx].isPrimary
-                          ? 'bg-emerald-50/30 border-x-2 border-emerald-400'
-                          : isWinner
-                          ? 'bg-amber-50/20 border-x-2 border-amber-300'
-                          : ''
-                      }`}
-                    >
-                      <div className="space-y-1">
-                        <p className="text-[11px] font-bold text-rose-800 uppercase">Rủi ro:</p>
-                        <ul className="text-xs text-slate-700 list-disc pl-3.5 space-y-0.5">
-                          {ev.keyRisks.map((risk, i) => (
-                            <li key={i}>{risk}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[11px] font-bold text-emerald-800 uppercase">Phòng tránh:</p>
-                        <ul className="text-xs text-slate-700 list-disc pl-3.5 space-y-0.5">
-                          {ev.mitigationTips.map((tip, i) => (
-                            <li key={i}>{tip}</li>
-                          ))}
-                        </ul>
                       </div>
                     </td>
                   );

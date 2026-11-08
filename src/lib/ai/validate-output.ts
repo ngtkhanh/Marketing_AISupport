@@ -1,4 +1,4 @@
-import type { CampaignInput, MarketingIdea } from '@/types/marketing';
+import type { CampaignInput, MarketingIdea, BrandProfile } from '@/types/marketing';
 import { BUDGET_CONFIGS } from '../config/budget';
 
 export interface ValidationOutputResult {
@@ -45,6 +45,8 @@ const CHANNEL_SEMANTIC_ALIASES: Record<string, string[]> = {
   'seo': ['bài viết', 'từ khóa', 'google', 'website', 'blog', 'nội dung chuẩn seo'],
   'google': ['search', 'tìm kiếm', 'ads', 'từ khóa', 'seo', 'map'],
   'youtube': ['video', 'shorts', 'clip', 'kênh video'],
+  'social': ['mạng xã hội', 'fanpage', 'facebook', 'instagram', 'tiktok', 'bài đăng', 'post', 'truyền thông', 'nội dung', 'kênh', 'social media', 'chia sẻ'],
+  'content': ['nội dung', 'bài viết', 'video', 'hình ảnh', 'post', 'truyền thông', 'ấn phẩm', 'bài đăng', 'infographic', 'quotes', 'kịch bản', 'sáng tạo'],
   'offline': ['cửa hàng', 'điểm bán', 'posm', 'tờ rơi', 'standee', 'trực tiếp', 'check-in', 'sự kiện', 'quầy hàng']
 };
 
@@ -168,6 +170,47 @@ export function validateMarketingOutput(
     consistencyErrors.forEach((err) => {
       errors.push(`Ý tưởng #${idx}: ${err}`);
     });
+
+    // 5. Kiểm tra vi phạm từ cấm theo Hồ sơ thương hiệu (Brand Profile Words to Avoid - Mục 5)
+    if (input.brandProfile?.wordsToAvoid) {
+      const forbiddenWords = input.brandProfile.wordsToAvoid
+        .split(/[,;\n]+/)
+        .map((w) => w.trim().toLowerCase())
+        .filter((w) => w.length >= 2);
+
+      const ideaContent = [
+        idea.title,
+        idea.tagline,
+        idea.mainContent,
+        idea.marketingLogic?.customerBarrierOrNeed || '',
+        idea.marketingLogic?.productBenefitAndProof || '',
+        idea.marketingLogic?.campaignMechanism || '',
+        idea.marketingLogic?.desiredAction || ''
+      ].join(' ').toLowerCase();
+
+      for (const word of forbiddenWords) {
+        if (ideaContent.includes(word)) {
+          errors.push(
+            `Ý tưởng #${idx} ("${idea.title}") chứa từ ngữ bị cấm "${word}" theo yêu cầu hồ sơ thương hiệu.`
+          );
+          break;
+        }
+      }
+    }
+
+    // 6. Kiểm tra cấu trúc marketingLogic 5 thành phần (nếu có)
+    if (idea.marketingLogic) {
+      const ml = idea.marketingLogic;
+      if (
+        !ml.customerBarrierOrNeed || ml.customerBarrierOrNeed.length < 5 ||
+        !ml.productBenefitAndProof || ml.productBenefitAndProof.length < 5 ||
+        !ml.campaignMechanism || ml.campaignMechanism.length < 5 ||
+        !ml.desiredAction || ml.desiredAction.length < 5 ||
+        !ml.successRequirements || ml.successRequirements.length < 5
+      ) {
+        errors.push(`Ý tưởng #${idx} ("${idea.title}") có cấu trúc giải thích logic marketing chưa hoàn chỉnh.`);
+      }
+    }
   });
 
   return {
@@ -181,7 +224,8 @@ export function validateMarketingOutput(
  */
 export function validateSingleIdeaMarketingOutput(
   idea: MarketingIdea,
-  budgetLevel: 'low' | 'medium' | 'high'
+  budgetLevel: 'low' | 'medium' | 'high',
+  brandProfile?: BrandProfile
 ): ValidationOutputResult {
   const errors: string[] = [];
   const config = BUDGET_CONFIGS[budgetLevel];
@@ -219,6 +263,33 @@ export function validateSingleIdeaMarketingOutput(
   consistencyErrors.forEach((err) => {
     errors.push(err);
   });
+
+  // 4. Kiểm tra vi phạm từ cấm theo Hồ sơ thương hiệu
+  if (brandProfile?.wordsToAvoid) {
+    const forbiddenWords = brandProfile.wordsToAvoid
+      .split(/[,;\n]+/)
+      .map((w) => w.trim().toLowerCase())
+      .filter((w) => w.length >= 2);
+
+    const ideaContent = [
+      idea.title,
+      idea.tagline,
+      idea.mainContent,
+      idea.marketingLogic?.customerBarrierOrNeed || '',
+      idea.marketingLogic?.productBenefitAndProof || '',
+      idea.marketingLogic?.campaignMechanism || '',
+      idea.marketingLogic?.desiredAction || ''
+    ].join(' ').toLowerCase();
+
+    for (const word of forbiddenWords) {
+      if (ideaContent.includes(word)) {
+        errors.push(
+          `Ý tưởng "${idea.title}" chứa từ ngữ bị cấm "${word}" theo yêu cầu hồ sơ thương hiệu.`
+        );
+        break;
+      }
+    }
+  }
 
   return {
     valid: errors.length === 0,

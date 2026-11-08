@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MarketingIdea, CampaignInput } from '@/types/marketing';
 import { WeeklyTimeline } from './WeeklyTimeline';
 import {
@@ -18,7 +18,9 @@ import {
   ChevronDown,
   ChevronUp,
   FlaskConical,
-  AlertTriangle
+  AlertTriangle,
+  MoreHorizontal,
+  Lightbulb
 } from 'lucide-react';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useCampaign } from '@/context/CampaignContext';
@@ -44,8 +46,32 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [hasSavedProposal, setHasSavedProposal] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
+  const [showMarketingLogic, setShowMarketingLogic] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const evidence = idea.verificationEvidence || attachVerificationEvidence(idea, context as CampaignInput);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMenuOpen]);
 
   useEffect(() => {
     const existing = getProposalByCampaignId(idea.id, idea.version || 1);
@@ -135,46 +161,28 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
           <p className="text-xs sm:text-sm text-slate-600 mt-0.5">"{idea.tagline}"</p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto shrink-0">
+        {/* Action Buttons: 2 Nút chính + Menu Thao Tác Phụ (Mục 7) */}
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          {/* Nút 1: Xem bản đề xuất chi tiết */}
           <button
             type="button"
             onClick={() => setIsProposalModalOpen(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-2xs ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer shadow-2xs ${
               hasSavedProposal
                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                 : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
             }`}
-            title="Lập bộ hồ sơ đề xuất chiến dịch hoàn chỉnh (Meeting-Ready Proposal) sẵn sàng trình Sếp duyệt chi"
+            title="Xem bản đề xuất chiến dịch hoàn chỉnh (Meeting-Ready Proposal) sẵn sàng trình sếp duyệt chi"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>{hasSavedProposal ? 'Mở Proposal' : 'Lập Proposal'}</span>
+            <span>Xem bản đề xuất</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setIsRefineModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors cursor-pointer"
-            title="Tinh chỉnh chiến dịch này bằng ngôn ngữ tự nhiên"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-slate-600" />
-            <span>Tinh chỉnh</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopy}
-            title="Sao chép tóm tắt ý tưởng"
-            aria-label="Sao chép tóm tắt"
-            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
-          >
-            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
-          </button>
-
+          {/* Nút 2: Lưu vào Shortlist */}
           <button
             type="button"
             onClick={handleToggleSave}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
               saved
                 ? 'bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200'
                 : 'bg-slate-900 hover:bg-slate-800 text-white'
@@ -188,10 +196,71 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
             ) : (
               <>
                 <Bookmark className="w-4 h-4 text-slate-300" />
-                <span>Lưu Shortlist</span>
+                <span>Lưu ý tưởng</span>
               </>
             )}
           </button>
+
+          {/* Nút 3: Menu Thao Tác Phụ (Dropdown) */}
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Thao tác khác"
+              aria-expanded={isMenuOpen}
+              aria-haspopup="true"
+              className="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer flex items-center justify-center"
+              title="Thao tác khác: Sao chép tóm tắt, Tinh chỉnh với AI"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-1.5 w-48 rounded-xl bg-white border border-slate-200 shadow-lg py-1.5 z-20 text-xs animate-in fade-in zoom-in-95 duration-150">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsRefineModalOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span>Tinh chỉnh với AI</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleCopy();
+                  }}
+                  className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  {copied ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  )}
+                  <span>{copied ? 'Đã sao chép' : 'Sao chép tóm tắt'}</span>
+                </button>
+
+                {hasHistory && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleRevert();
+                    }}
+                    className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer border-t border-slate-100"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Hoàn tác phiên bản</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -219,6 +288,73 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
         <p className="font-semibold text-slate-800 text-xs mb-1 uppercase tracking-wider">Nội dung chiến lược chính:</p>
         <p>{idea.mainContent}</p>
       </div>
+
+      {/* Logic Marketing 5 Thành Phần (Mức 2 - Mục 5) */}
+      {idea.marketingLogic && (
+        <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden bg-white">
+          <button
+            type="button"
+            onClick={() => setShowMarketingLogic(!showMarketingLogic)}
+            className="w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-amber-500" />
+              <span>Logic marketing & Điều kiện thành công</span>
+              <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                5 yếu tố then chốt
+              </span>
+            </span>
+            {showMarketingLogic ? (
+              <ChevronUp className="w-4 h-4 text-slate-400" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-slate-400" />
+            )}
+          </button>
+
+          {showMarketingLogic && (
+            <div className="p-3.5 border-t border-slate-100 bg-slate-50/60 space-y-2.5 text-xs text-slate-700 animate-fadeIn">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <span className="font-bold block mb-1 text-[11px] uppercase tracking-wider text-rose-600">
+                    1. Nhu cầu hoặc rào cản khách hàng
+                  </span>
+                  <p className="leading-relaxed text-slate-600">{idea.marketingLogic.customerBarrierOrNeed}</p>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <span className="font-bold block mb-1 text-[11px] uppercase tracking-wider text-emerald-600">
+                    2. Lợi ích giải quyết & Bằng chứng
+                  </span>
+                  <p className="leading-relaxed text-slate-600">{idea.marketingLogic.productBenefitAndProof}</p>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                <span className="font-bold block mb-1 text-[11px] uppercase tracking-wider text-indigo-600">
+                  3. Cơ chế tác động tâm lý & hành vi
+                </span>
+                <p className="leading-relaxed text-slate-600">{idea.marketingLogic.campaignMechanism}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <span className="font-bold block mb-1 text-[11px] uppercase tracking-wider text-amber-600">
+                    4. Hành động mong muốn (CTA)
+                  </span>
+                  <p className="leading-relaxed text-slate-600 font-medium">{idea.marketingLogic.desiredAction}</p>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <span className="font-bold block mb-1 text-[11px] uppercase tracking-wider text-purple-600">
+                    5. Điều kiện tiên quyết để thành công
+                  </span>
+                  <p className="leading-relaxed text-slate-600">{idea.marketingLogic.successRequirements}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Weekly Timeline (Feature 3) */}
       <WeeklyTimeline timeline={idea.timeline} />
@@ -349,7 +485,7 @@ export function IdeaCard({ idea, context, index }: IdeaCardProps) {
         onApplyRefinedIdea={handleApplyRefinement}
       />
 
-      {/* Modal Lập Proposal Trình Sếp (Task 8) */}
+      {/* Modal Bản Đề Xuất Trình Sếp */}
       <ProposalModal
         isOpen={isProposalModalOpen}
         onClose={() => setIsProposalModalOpen(false)}

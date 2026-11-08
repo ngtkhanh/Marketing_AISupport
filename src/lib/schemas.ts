@@ -126,6 +126,15 @@ export const additionalNotesFieldSchema = z
     message: 'Ghi chú bổ sung có vẻ chưa rõ nghĩa, bạn thử mô tả cụ thể hơn nhé'
   });
 
+// Schema cho Hồ sơ thương hiệu nhỏ (Mục 5)
+export const brandProfileSchema = z
+  .object({
+    brandToneAdjectives: z.array(z.string().min(1)).optional(),
+    permittedClaims: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
+    wordsToAvoid: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined))
+  })
+  .optional();
+
 // Schema cho từng bước của Wizard 3 bước (P1)
 export const step1Schema = z.object({
   industry: industryFieldSchema,
@@ -145,7 +154,8 @@ export const step3Schema = z.object({
   productPrice: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
   existingChannels: z.array(z.string()).optional(),
   availableResources: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
-  specificBudgetVnd: z.number().optional()
+  specificBudgetVnd: z.number().optional(),
+  brandProfile: brandProfileSchema
 });
 
 export const campaignInputSchema = z.object({
@@ -160,7 +170,8 @@ export const campaignInputSchema = z.object({
   keyDifferentiator: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
   existingChannels: z.array(z.string()).optional(),
   availableResources: z.string().optional().transform((v) => (v ? sanitizeString(v) : undefined)),
-  specificBudgetVnd: z.number().optional()
+  specificBudgetVnd: z.number().optional(),
+  brandProfile: brandProfileSchema
 });
 
 export const weeklyPlanSchema = z.object({
@@ -172,6 +183,15 @@ export const weeklyPlanSchema = z.object({
     .max(5, 'Mỗi tuần tối đa 5 hoạt động')
 });
 
+// Schema cho 5 thành phần giải thích logic marketing (Mục 5)
+export const marketingLogicSchema = z.object({
+  customerBarrierOrNeed: z.string().min(5, 'Nhu cầu hoặc rào cản tối thiểu 5 ký tự'),
+  productBenefitAndProof: z.string().min(5, 'Lợi ích và bằng chứng tối thiểu 5 ký tự'),
+  campaignMechanism: z.string().min(5, 'Cơ chế chiến dịch tối thiểu 5 ký tự'),
+  desiredAction: z.string().min(5, 'Hành động mong muốn tối thiểu 5 ký tự'),
+  successRequirements: z.string().min(5, 'Điều kiện thành công tối thiểu 5 ký tự')
+});
+
 export const rawAIIdeaSchema = z.object({
   title: z.string().min(2),
   tagline: z.string().min(2),
@@ -179,7 +199,8 @@ export const rawAIIdeaSchema = z.object({
   mainContent: z.string().min(10),
   estimatedBudget: z.string().min(2),
   targetAudience: z.string().min(2),
-  timeline: z.array(weeklyPlanSchema).length(4, 'Mỗi ý tưởng phải có đúng 4 tuần')
+  timeline: z.array(weeklyPlanSchema).length(4, 'Mỗi ý tưởng phải có đúng 4 tuần'),
+  marketingLogic: marketingLogicSchema.optional()
 });
 
 export const rawAIResponseSchema = z.object({

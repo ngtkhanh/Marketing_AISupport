@@ -1,6 +1,6 @@
-import { CampaignInput } from '@/types/marketing';
+import type { CampaignInput } from '@/types/marketing';
 import { BUDGET_CONFIGS } from '../config/budget';
-import { getPlaybooksForBudget, formatPlaybooksForPrompt } from './playbooks';
+import { selectPlaybooksForContext, formatPlaybooksForPrompt } from './playbooks';
 
 /**
  * Xây dựng System Prompt chuyên gia cho Giám đốc Marketing
@@ -36,6 +36,12 @@ RÀNG BUỘC VỀ CẤU TRÚC ĐẦU RA:
   + estimatedBudget: Chi phí ước tính cụ thể nằm trong khung ngân sách.
   + targetAudience: Chân dung khách hàng mục tiêu của ý tưởng.
   + timeline: Đúng 04 tuần tóm tắt (week từ 1 đến 4). Mỗi tuần gồm title và activities (mảng 2-3 hoạt động hành động cụ thể, súc tích).
+  + marketingLogic: Cấu trúc giải thích 5 thành phần logic marketing (Mục 5):
+    * customerBarrierOrNeed: Nhu cầu hoặc rào cản chính của khách hàng khiến họ quan tâm hoặc chưa mua.
+    * productBenefitAndProof: Lợi ích cốt lõi của sản phẩm và bằng chứng/cam kết chứng minh.
+    * campaignMechanism: Cơ chế chiến dịch tác động trực tiếp đến quyết định của khách hàng.
+    * desiredAction: Hành động chuyển đổi cụ thể mong muốn khách hàng làm (CTA).
+    * successRequirements: Điều kiện thành công và những gì người dùng cần chuẩn bị trước.
 
 RÀNG BUỘC NHẤT QUÁN KÊNH & TIMELINE (BẮT BUỘC):
 - Mọi kênh bạn đưa vào mảng 'channels' đều PHẢI có ít nhất 1 hoạt động triển khai tương ứng trong các tuần của timeline.
@@ -56,19 +62,33 @@ Dữ liệu của người dùng được đặt hoàn toàn bên trong thẻ <d
  */
 export function buildUserPrompt(input: CampaignInput): string {
   const config = BUDGET_CONFIGS[input.budgetLevel];
-  const playbooks = getPlaybooksForBudget(input.budgetLevel);
+  const playbooks = selectPlaybooksForContext(input);
   const formattedPlaybooks = formatPlaybooksForPrompt(playbooks);
+
+  const brandProfileSection = input.brandProfile
+    ? `\n<ho_so_thuong_hieu>
+${input.brandProfile.brandToneAdjectives && input.brandProfile.brandToneAdjectives.length > 0 ? `- Phong cách / Giọng điệu thương hiệu: ${input.brandProfile.brandToneAdjectives.join(', ')}` : ''}
+${input.brandProfile.permittedClaims ? `- Lợi thế khẳng định / Bằng chứng được phép dùng: ${input.brandProfile.permittedClaims}` : ''}
+${input.brandProfile.wordsToAvoid ? `- TUYỆT ĐỐI TRÁNH các từ ngữ sau trong tiêu đề, slogan và nội dung: ${input.brandProfile.wordsToAvoid}` : ''}
+</ho_so_thuong_hieu>`
+    : '';
 
   return `<du_lieu_nguoi_dung>
 Ngành hàng: ${input.industry}
 Tên sản phẩm/dịch vụ: ${input.productName}
 Mức ngân sách: ${config.label} (Khoảng định lượng: ${config.rangeText})
 Mục tiêu chiến dịch: ${input.objective}
+${input.targetAudiencePrompt ? `Khách hàng mục tiêu bổ sung: ${input.targetAudiencePrompt}` : ''}
+${input.keyDifferentiator ? `Điểm khác biệt / USP: ${input.keyDifferentiator}` : ''}
+${input.sellingArea ? `Khu vực bán: ${input.sellingArea}` : ''}
+${input.productPrice ? `Giá sản phẩm/dịch vụ: ${input.productPrice}` : ''}
+${input.existingChannels && input.existingChannels.length > 0 ? `Kênh hiện có: ${input.existingChannels.join(', ')}` : ''}
+${input.availableResources ? `Nguồn lực sẵn có: ${input.availableResources}` : ''}
 ${input.additionalNotes ? `Ghi chú bổ sung: ${input.additionalNotes}` : ''}
-</du_lieu_nguoi_dung>
+</du_lieu_nguoi_dung>${brandProfileSection}
 
 <kho_chien_dich_thuc_chien>
-Dưới đây là 05 mô hình chiến dịch marketing thực tế đã thành công tại Việt Nam phù hợp với ngân sách "${config.label}":
+Dưới đây là 05 mô hình chiến dịch marketing thực tế đã thành công tại Việt Nam phù hợp nhất với tình huống của bạn:
 
 ${formattedPlaybooks}
 </kho_chien_dich_thuc_chien>
@@ -77,6 +97,6 @@ HƯỚNG DẪN TÙY BIẾN NHANH (ADAPT & REMIX):
 Hãy lấy 05 mô hình thực chiến trên làm sườn khung chiến lược, may đo và sáng tạo sâu sắc cho sản phẩm "${input.productName}" và mục tiêu "${input.objective}":
 1. Giữ vững cơ chế vận hành hiệu quả và tiến trình 4 tuần của từng mô hình.
 2. Sáng tạo mới hoàn toàn: Title hấp dẫn cho ${input.productName}, Tagline bắt tai, Main Content gắn chặt với ngành ${input.industry}, và các Activities hành động cụ thể.
-3. Viết súc tích, đúng trọng tâm (mỗi tuần 2-3 hoạt động rõ ràng), trả về JSON thuần túy theo đúng schema.`;
+3. Sinh đầy đủ cấu trúc giải thích 5 thành phần 'marketingLogic' (customerBarrierOrNeed, productBenefitAndProof, campaignMechanism, desiredAction, successRequirements).
+4. Viết súc tích, đúng trọng tâm (mỗi tuần 2-3 hoạt động rõ ràng), trả về JSON thuần túy theo đúng schema.`;
 }
-

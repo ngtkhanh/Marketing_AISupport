@@ -40,7 +40,12 @@ const PRESET_SAMPLES: Array<{
       objective: 'Tăng tương tác và độ nhận diện trong giới học sinh, sinh viên',
       additionalNotes: 'Tập trung kênh TikTok và hoạt động minigame truyền miệng',
       targetAudiencePrompt: 'Học sinh, sinh viên và nhân viên văn phòng trẻ từ 16–25 tuổi',
-      sellingArea: 'Hà Nội & TP.HCM'
+      sellingArea: 'Hà Nội & TP.HCM',
+      brandProfile: {
+        brandToneAdjectives: ['Gần gũi', 'Tươi trẻ', 'Năng động'],
+        permittedClaims: '100% trà tự nhiên nấu mới mỗi ngày',
+        wordsToAvoid: 'Rẻ nhất, Cam kết số 1'
+      }
     }
   },
   {
@@ -52,7 +57,12 @@ const PRESET_SAMPLES: Array<{
       objective: 'Ra mắt sản phẩm mới và tạo cơn sốt bùng nổ doanh số quý 4',
       additionalNotes: 'Có thể hợp tác KOL lớn và biển quảng cáo ngoài trời',
       targetAudiencePrompt: 'Phái đẹp công sở 24–35 tuổi, thu nhập trung bình khá',
-      sellingArea: 'Toàn quốc'
+      sellingArea: 'Toàn quốc',
+      brandProfile: {
+        brandToneAdjectives: ['Thanh lịch', 'Hiện đại', 'Tự tin'],
+        permittedClaims: 'Chất liệu lụa satin cao cấp chống nhăn',
+        wordsToAvoid: 'Đại hạ giá, Xả kho'
+      }
     }
   },
   {
@@ -64,7 +74,12 @@ const PRESET_SAMPLES: Array<{
       objective: 'Thu thập 5.000 khách hàng tiềm năng đăng ký dùng thử ứng dụng',
       additionalNotes: 'Khai thác video trải nghiệm ngắn và quảng cáo chuyển đổi',
       targetAudiencePrompt: 'Người đi làm bận rộn muốn nâng cao phản xạ giao tiếp',
-      sellingArea: 'Toàn quốc'
+      sellingArea: 'Toàn quốc',
+      brandProfile: {
+        brandToneAdjectives: ['Chuyên nghiệp', 'Đột phá', 'Tận tâm'],
+        permittedClaims: 'Công nghệ AI phát âm chuẩn Oxford',
+        wordsToAvoid: 'Học vẹt, Cam kết giỏi ngay'
+      }
     }
   }
 ];
@@ -93,7 +108,10 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
     productPrice,
     keyDifferentiator,
     availableResources,
-    specificBudgetVnd
+    specificBudgetVnd,
+    brandToneAdjectives,
+    permittedClaims,
+    wordsToAvoid
   } = formData;
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -127,7 +145,10 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
       productPrice: preset.data.productPrice || '',
       keyDifferentiator: preset.data.keyDifferentiator || '',
       availableResources: preset.data.availableResources || '',
-      specificBudgetVnd: preset.data.specificBudgetVnd
+      specificBudgetVnd: preset.data.specificBudgetVnd,
+      brandToneAdjectives: preset.data.brandProfile?.brandToneAdjectives || [],
+      permittedClaims: preset.data.brandProfile?.permittedClaims || '',
+      wordsToAvoid: preset.data.brandProfile?.wordsToAvoid || ''
     });
     setFieldErrors({});
     // Nhảy thẳng tới Bước 3 để xem tóm tắt và sẵn sàng tạo ý tưởng ngay
@@ -176,6 +197,11 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const hasBrandProfile =
+      (brandToneAdjectives && brandToneAdjectives.length > 0) ||
+      Boolean(permittedClaims?.trim()) ||
+      Boolean(wordsToAvoid?.trim());
+
     const rawInput: CampaignInput = {
       industry,
       productName,
@@ -187,7 +213,14 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
       productPrice: productPrice || undefined,
       keyDifferentiator: keyDifferentiator || undefined,
       availableResources: availableResources || undefined,
-      specificBudgetVnd: specificBudgetVnd || undefined
+      specificBudgetVnd: specificBudgetVnd || undefined,
+      brandProfile: hasBrandProfile
+        ? {
+            brandToneAdjectives: brandToneAdjectives && brandToneAdjectives.length > 0 ? brandToneAdjectives : undefined,
+            permittedClaims: permittedClaims?.trim() || undefined,
+            wordsToAvoid: wordsToAvoid?.trim() || undefined
+          }
+        : undefined
     };
 
     // Client-side Validation toàn bộ
@@ -623,6 +656,64 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
                     placeholder="VD: 15000000 (15 triệu)"
                     className="w-full px-3 py-2 rounded border border-slate-300 focus:outline-none focus:border-slate-900"
                   />
+                </div>
+
+                {/* Tiểu mục: Hồ sơ thương hiệu nhỏ (Mục 5) */}
+                <div className="col-span-1 sm:col-span-2 pt-2 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-800 text-xs">Hồ sơ thương hiệu nhỏ (Mục 5)</span>
+                    <span className="text-[11px] text-slate-400">— Tùy chọn để AI may đo đúng phong cách</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label htmlFor="brandToneAdjectives" className="block font-medium text-slate-700 mb-1">
+                        Giọng thương hiệu (3 tính từ)
+                      </label>
+                      <input
+                        id="brandToneAdjectives"
+                        type="text"
+                        value={(brandToneAdjectives || []).join(', ')}
+                        onChange={(e) => {
+                          const val = e.target.value
+                            .split(',')
+                            .map((s) => s.trim())
+                            .filter(Boolean);
+                          updateFormField('brandToneAdjectives', val);
+                        }}
+                        placeholder="VD: Chuyên nghiệp, Tươi trẻ, Độc bản"
+                        className="w-full px-3 py-2 rounded border border-slate-300 focus:outline-none focus:border-slate-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="permittedClaims" className="block font-medium text-slate-700 mb-1">
+                        Bằng chứng / Cam kết khẳng định
+                      </label>
+                      <input
+                        id="permittedClaims"
+                        type="text"
+                        value={permittedClaims || ''}
+                        onChange={(e) => updateFormField('permittedClaims', e.target.value)}
+                        placeholder="VD: 100% tự nhiên, đổi trả 30 ngày"
+                        className="w-full px-3 py-2 rounded border border-slate-300 focus:outline-none focus:border-slate-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="wordsToAvoid" className="block font-medium text-slate-700 mb-1">
+                        Từ ngữ / Cách nói cần tránh
+                      </label>
+                      <input
+                        id="wordsToAvoid"
+                        type="text"
+                        value={wordsToAvoid || ''}
+                        onChange={(e) => updateFormField('wordsToAvoid', e.target.value)}
+                        placeholder="VD: Rẻ nhất, Cam kết số 1"
+                        className="w-full px-3 py-2 rounded border border-slate-300 focus:outline-none focus:border-slate-900"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

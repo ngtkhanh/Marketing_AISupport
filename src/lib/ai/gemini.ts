@@ -49,6 +49,23 @@ const GEMINI_SCHEMA = {
               },
               required: ['week', 'title', 'activities']
             }
+          },
+          marketingLogic: {
+            type: Type.OBJECT,
+            properties: {
+              customerBarrierOrNeed: { type: Type.STRING },
+              productBenefitAndProof: { type: Type.STRING },
+              campaignMechanism: { type: Type.STRING },
+              desiredAction: { type: Type.STRING },
+              successRequirements: { type: Type.STRING }
+            },
+            required: [
+              'customerBarrierOrNeed',
+              'productBenefitAndProof',
+              'campaignMechanism',
+              'desiredAction',
+              'successRequirements'
+            ]
           }
         },
         required: [

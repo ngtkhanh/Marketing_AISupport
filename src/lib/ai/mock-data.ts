@@ -1,6 +1,60 @@
-import type { CampaignInput, MarketingIdea } from '@/types/marketing';
+import type { CampaignInput, MarketingIdea, MarketingLogicExplanation } from '@/types/marketing';
 import { BUDGET_CONFIGS } from '../config/budget';
 import { attachVerificationEvidence } from '../evidence-generator';
+
+/**
+ * Tạo cấu trúc giải thích 5 thành phần logic marketing theo Mục 5
+ */
+function generateDefaultMarketingLogic(idea: MarketingIdea, input: CampaignInput, idx: number): MarketingLogicExplanation {
+  const barriers = [
+    `Khách hàng còn e ngại về độ uy tín hoặc chưa biết đến thương hiệu ${input.productName}`,
+    `Rào cản giá và tâm lý do dự chưa muốn chi tiền dùng thử sản phẩm mới trong ngành ${input.industry}`,
+    `Khách hàng chưa phân biệt được điểm khác biệt của ${input.productName} so với các đối thủ trên thị trường`,
+    `Thói quen tiêu dùng cũ khiến khách hàng ngần ngại thay đổi sang giải pháp mới`,
+    `Khách hàng thiếu niềm tin vào quảng cáo thông thường, cần người thật việc thật chứng minh chất lượng`
+  ];
+
+  const benefits = [
+    `Giải pháp giải quyết đúng nhu cầu với cam kết chất lượng rõ ràng và chính sách đổi trả minh bạch`,
+    `Ưu đãi trải nghiệm đặc quyền kết hợp quà tặng dùng thử thực tế cho sản phẩm ${input.productName}`,
+    `Đem lại giá trị vượt trội trong tầm giá với chứng nhận kiểm định và bằng chứng xã hội xác thực`,
+    `Tiết kiệm thời gian và chi phí, mang lại cảm nhận hiệu quả nhanh chóng cho khách hàng`,
+    `Trải nghiệm dịch vụ tận tâm đi kèm phản hồi thực tế từ hàng chục khách hàng đi trước`
+  ];
+
+  const mechanisms = [
+    `Ứng dụng hiệu ứng lan truyền tự nhiên (UGC) và seeding hội nhóm để xây dựng niềm tin đa chiều`,
+    `Khai thác tâm lý muốn trải nghiệm trước khi mua qua hành trình 7 ngày và review chân thực`,
+    `Tận dụng liên minh đối tác tương hỗ để tiếp cận đúng tệp khách tiềm năng với chi phí 0đ media`,
+    `Cung cấp kiến thức chuyên gia giá trị cao để biến người xem từ tò mò thành khách hàng trung thành`,
+    `Kích hoạt lòng trung thành và hiệu ứng truyền miệng qua phần thưởng giới thiệu đôi bên cùng có lợi`
+  ];
+
+  const actions = [
+    `Đăng ký tham gia thử thách hoặc chia sẻ bài viết để nhận mã ưu đãi dùng thử độc quyền`,
+    `Điền form đăng ký nhận sản phẩm trải nghiệm và tham gia nhóm cộng đồng hỗ trợ`,
+    `Ghé thăm điểm bán đối tác hoặc quét mã QR nhận voucher giảm giá cho đơn hàng đầu tiên`,
+    `Bấm theo dõi kênh, để lại bình luận nhận tài liệu tư vấn và liên hệ mua hàng qua inbox`,
+    `Quét mã Zalo OA kích hoạt thẻ tích điểm và gửi link giới thiệu cho ít nhất 1 người bạn`
+  ];
+
+  const requirements = [
+    `Chuẩn bị sẵn 30-50 phần quà trải nghiệm và nhân sự tương tác phản hồi trong 15 phút`,
+    `Bộ quy chuẩn hướng dẫn trải nghiệm và đội ngũ chăm sóc khách hàng hàng ngày`,
+    `Thỏa thuận hợp tác rõ ràng với 2-3 đối tác và ấn phẩm standee/voucher in sẵn`,
+    `Kế hoạch nội dung 15 video ngắn và thiết bị quay cơ bản đảm bảo âm thanh rõ nét`,
+    `Hệ thống cấp mã QR tích điểm và thể lệ đổi quà minh bạch không gây hiểu lầm`
+  ];
+
+  const i = idx % 5;
+  return {
+    customerBarrierOrNeed: barriers[i],
+    productBenefitAndProof: benefits[i],
+    campaignMechanism: mechanisms[i],
+    desiredAction: actions[i],
+    successRequirements: requirements[i]
+  };
+}
 
 /**
  * Sinh dữ liệu mẫu dự phòng chất lượng cao khi xảy ra sự cố hạ tầng AI (429, timeout, mất mạng)
@@ -728,8 +782,9 @@ export function getFallbackMarketingIdeas(input: CampaignInput): MarketingIdea[]
   ];
   }
 
-  return rawIdeas.map((idea) => ({
+  return rawIdeas.map((idea, idx) => ({
     ...idea,
+    marketingLogic: idea.marketingLogic || generateDefaultMarketingLogic(idea, input, idx),
     verificationEvidence: attachVerificationEvidence(idea, input)
   }));
 }

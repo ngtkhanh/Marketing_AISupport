@@ -2,6 +2,12 @@ import type { IdeaVerificationEvidence } from './case-study';
 
 export type BudgetLevel = 'low' | 'medium' | 'high';
 
+export interface BrandProfile {
+  brandToneAdjectives?: string[]; // 3 tính từ mô tả giọng thương hiệu
+  permittedClaims?: string; // Bằng chứng / nội dung được phép khẳng định
+  wordsToAvoid?: string; // Từ ngữ hoặc cách diễn đạt nên tránh
+}
+
 export interface CampaignContextualInput {
   targetAudiencePrompt?: string; // Khách hàng muốn tiếp cận (hoặc "Chưa xác định")
   sellingArea?: string; // Khu vực bán (Toàn quốc, TP.HCM, Hà Nội...)
@@ -10,6 +16,7 @@ export interface CampaignContextualInput {
   existingChannels?: string[]; // Kênh hiện có
   availableResources?: string; // Nguồn lực/nhân sự sẵn có
   specificBudgetVnd?: number; // Ngân sách dự chi cụ thể (VNĐ)
+  brandProfile?: BrandProfile; // Hồ sơ thương hiệu nhỏ (Mục 5)
 }
 
 export interface CampaignInput extends CampaignContextualInput {
@@ -24,6 +31,14 @@ export interface WeeklyPlan {
   week: 1 | 2 | 3 | 4;
   title: string;
   activities: string[]; // 2-4 hoạt động ngắn, khả thi
+}
+
+export interface MarketingLogicExplanation {
+  customerBarrierOrNeed: string; // Nhu cầu hoặc rào cản của khách hàng
+  productBenefitAndProof: string; // Lợi ích giải quyết và bằng chứng thực tế
+  campaignMechanism: string; // Cơ chế tác động đến quyết định mua
+  desiredAction: string; // Hành động cụ thể muốn khách hàng làm (CTA)
+  successRequirements: string; // Điều kiện tiên quyết & chuẩn bị để thành công
 }
 
 export interface RefinementHistoryEntry {
@@ -55,6 +70,7 @@ export interface MarketingIdea {
   version?: number; // Phiên bản (1, 2, 3...)
   refinementHistory?: RefinementHistoryEntry[]; // Lịch sử các lần tinh chỉnh
   verificationEvidence?: IdeaVerificationEvidence; // Căn cứ thực chứng & Kế hoạch thử nghiệm nhỏ (P1)
+  marketingLogic?: MarketingLogicExplanation; // Khung giải thích 5 thành phần logic marketing (Mục 5)
 }
 
 export interface RefineIdeaRequest {

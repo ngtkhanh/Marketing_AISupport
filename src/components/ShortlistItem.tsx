@@ -151,10 +151,10 @@ export function ShortlistItem({
                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                 : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
             }`}
-            title="Lập bộ hồ sơ đề xuất chiến dịch hoàn chỉnh (Meeting-Ready Proposal) sẵn sàng trình Sếp duyệt chi"
+            title="Xem bản đề xuất chiến dịch hoàn chỉnh (Meeting-Ready Proposal) sẵn sàng trình sếp duyệt chi"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>{hasSavedProposal ? 'Mở Proposal' : 'Lập Proposal'}</span>
+            <span>Xem bản đề xuất</span>
           </button>
 
           <button
@@ -295,7 +295,7 @@ export function ShortlistItem({
         )}
       </div>
 
-      {/* Modal Lập Proposal Trình Sếp (Task 8) */}
+      {/* Modal Bản Đề Xuất Trình Sếp */}
       <ProposalModal
         isOpen={isProposalModalOpen}
         onClose={() => setIsProposalModalOpen(false)}
