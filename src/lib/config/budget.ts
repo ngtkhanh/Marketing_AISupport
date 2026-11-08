@@ -1,4 +1,4 @@
-import { BudgetLevel } from '@/types/marketing';
+import type { BudgetLevel } from '@/types/marketing';
 
 export interface BudgetLevelConfig {
   id: BudgetLevel;
@@ -28,6 +28,8 @@ export const BUDGET_CONFIGS: Record<BudgetLevel, BudgetLevelConfig> = {
       'ooh',
       'đại nhạc hội',
       'kol hạng a',
+      'celeb',
+      'người nổi tiếng',
       'quảng cáo truyền hình',
       'sự kiện quy mô lớn',
       'led ngoài trời'

@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   CampaignProposal,
   MarketingIdea,
-  CampaignInput
+  CampaignInput,
+  BudgetAllocation
 } from '@/types/marketing';
-import { generateDefaultProposal } from '@/lib/proposal-generator';
+import { generateDefaultProposal, generateKpiScenarios } from '@/lib/proposal-generator';
 import {
   getProposalByCampaignId,
   saveProposal
@@ -30,7 +31,8 @@ import {
   Check,
   RefreshCw,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 
 interface ProposalModalProps {
@@ -54,6 +56,8 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
   const [activeTab, setActiveTab] = useState<ProposalTab>('overview');
   const [proposal, setProposal] = useState<CampaignProposal | null>(null);
   const [isSavedRecently, setIsSavedRecently] = useState(false);
+  const [initialBudget, setInitialBudget] = useState<number>(0);
+  const [isBudgetOutOfSync, setIsBudgetOutOfSync] = useState(false);
 
   // Khởi tạo hoặc tải proposal đã lưu từ localStorage
   const initProposal = useCallback(() => {
@@ -62,9 +66,11 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     const existing = getProposalByCampaignId(idea.id, idea.version || 1);
     if (existing) {
       setProposal(existing);
+      setInitialBudget(existing.budgetAllocation.totalBudget);
     } else {
       const generated = generateDefaultProposal(idea, context);
       setProposal(generated);
+      setInitialBudget(generated.budgetAllocation.totalBudget);
     }
   }, [isOpen, idea, context]);
 
@@ -72,6 +78,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     initProposal();
     setActiveTab('overview');
     setIsSavedRecently(false);
+    setIsBudgetOutOfSync(false);
   }, [initProposal]);
 
   if (!isOpen || !proposal) return null;
@@ -83,7 +90,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     if (ok) {
       setIsSavedRecently(true);
       if (!silent) {
-        showToast('Đã lưu bản Proposal thành công vào trình duyệt!', 'success');
+        showToast('Đã lưu bản Đề xuất thành công vào trình duyệt!', 'success');
       }
       if (onProposalSaved) {
         onProposalSaved(proposal);
@@ -91,7 +98,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
       setTimeout(() => setIsSavedRecently(false), 2500);
     } else {
       if (!silent) {
-        showToast('Không thể lưu proposal. Vui lòng thử lại.', 'error');
+        showToast('Không thể lưu đề xuất. Vui lòng thử lại.', 'error');
       }
     }
   };
@@ -101,9 +108,37 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     if (confirm('Bạn có chắc muốn đặt lại toàn bộ phân bổ ngân sách và checklist về mẫu ban đầu?')) {
       const refreshed = generateDefaultProposal(idea, context);
       setProposal(refreshed);
+      setInitialBudget(refreshed.budgetAllocation.totalBudget);
+      setIsBudgetOutOfSync(false);
       saveProposal(refreshed);
       showToast('Đã khôi phục bản đề xuất về mẫu chuẩn Playbook ban đầu.', 'info');
     }
+  };
+
+  // Đồng bộ lại KPI khi người dùng sửa ngân sách
+  const handleBudgetChange = (updatedAllocation: BudgetAllocation) => {
+    setProposal((prev) => (prev ? { ...prev, budgetAllocation: updatedAllocation } : null));
+    if (updatedAllocation.totalBudget !== initialBudget) {
+      setIsBudgetOutOfSync(true);
+    } else {
+      setIsBudgetOutOfSync(false);
+    }
+  };
+
+  const handleRecalculateKPIs = () => {
+    if (!proposal) return;
+    const recalculatedKPIs = generateKpiScenarios(
+      idea,
+      proposal.budgetAllocation.totalBudget,
+      context.objective
+    );
+    setProposal({
+      ...proposal,
+      kpiScenarios: recalculatedKPIs
+    });
+    setInitialBudget(proposal.budgetAllocation.totalBudget);
+    setIsBudgetOutOfSync(false);
+    showToast('Đã cập nhật lại toàn bộ KPI theo ngân sách mới!', 'success');
   };
 
   return (
@@ -265,12 +300,32 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
           </button>
         </div>
 
+        {/* Cảnh báo khi ngân sách đã thay đổi mà chưa đồng bộ lại KPI */}
+        {isBudgetOutOfSync && (
+          <div className="bg-amber-50 border-b border-amber-200 px-5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900 shrink-0">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                <strong>Ngân sách đã thay đổi:</strong> Các chỉ số KPI kỳ vọng và dự toán đang lệch so với ngân sách mới. Vui lòng cập nhật lại để đảm bảo tính nhất quán.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRecalculateKPIs}
+              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold shrink-0 transition self-start sm:self-auto"
+            >
+              Cập nhật lại KPI ngay
+            </button>
+          </div>
+        )}
+
         {/* Body Modal: Chứa nội dung từng Tab */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <ExecutiveDecisionBanner
                 decision={proposal.executiveDecision}
+                status={proposal.status}
                 onChange={(updatedDecision) =>
                   setProposal({ ...proposal, executiveDecision: updatedDecision })
                 }
@@ -302,9 +357,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
           {activeTab === 'budget' && (
             <BudgetAllocationEditor
               allocation={proposal.budgetAllocation}
-              onChange={(updatedAllocation) =>
-                setProposal({ ...proposal, budgetAllocation: updatedAllocation })
-              }
+              onChange={handleBudgetChange}
             />
           )}
 

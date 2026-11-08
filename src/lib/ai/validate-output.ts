@@ -1,9 +1,80 @@
-import { CampaignInput, MarketingIdea } from '@/types/marketing';
+import type { CampaignInput, MarketingIdea } from '@/types/marketing';
 import { BUDGET_CONFIGS } from '../config/budget';
 
 export interface ValidationOutputResult {
   valid: boolean;
   errors: string[];
+}
+
+/**
+ * Bảng từ đồng nghĩa và hoạt động liên kết thực tế của các kênh marketing
+ * Giúp nhận diện chính xác khi AI dùng các cách diễn đạt nghiệp vụ khác nhau
+ */
+const CHANNEL_SEMANTIC_ALIASES: Record<string, string[]> = {
+  'referral': ['giới thiệu', 'mời bạn', 'chia sẻ', 'bạn bè', 'tri ân', 'mã mời', 'truyền miệng', 'wom', 'tích điểm', 'thưởng đôi'],
+  'truyền miệng': ['giới thiệu', 'mời bạn', 'chia sẻ', 'bạn bè', 'tri ân', 'mã mời', 'referral', 'khách quen', 'tích điểm', 'truyền tai'],
+  'koc': ['review', 'reviewer', 'booking', 'gửi mẫu', 'trải nghiệm', 'kol', 'influencer', 'bài review', 'video review', 'đánh giá'],
+  'kol': ['koc', 'influencer', 'booking', 'đại sứ', 'gửi mẫu', 'review', 'người nổi tiếng'],
+  'ads': ['quảng cáo', 'chạy ads', 'chiến dịch', 'giá thầu', 'cpm', 'cpc', 'pixel', 'tối ưu ads', 'target', 'retargeting', 'boost', 'trả phí'],
+  'quảng cáo': ['ads', 'chạy', 'chiến dịch', 'giá thầu', 'pixel', 'tối ưu', 'target', 'trả phí'],
+  'zalo': ['zalo oa', 'mini app', 'zns', 'tin nhắn', 'nhắn tin', 'chăm sóc khách', 'quét mã', 'qr'],
+  'tiktok': ['video ngắn', 'reels', 'clip', 'spark ads', 'trend', 'livestream', 'tiktok shop', 'quay dựng'],
+  'facebook': ['fanpage', 'group', 'hội nhóm', 'bài đăng', 'seeding', 'cộng đồng', 'reels', 'post', 'livestream'],
+  'meta': ['facebook', 'instagram', 'fanpage', 'reels', 'ads', 'quảng cáo'],
+  'shopee': ['sàn tmđt', 'gian hàng', 'livestream', 'voucher sàn', 'shopee live', 'e-commerce', 'đặt mua'],
+  'email': ['newsletter', 'hộp thư', 'gửi mail', 'automation', 'thư điện tử'],
+  'seo': ['bài viết', 'từ khóa', 'google', 'website', 'blog', 'nội dung chuẩn seo'],
+  'google': ['search', 'tìm kiếm', 'ads', 'từ khóa', 'seo', 'map'],
+  'youtube': ['video', 'shorts', 'clip', 'kênh video'],
+  'offline': ['cửa hàng', 'điểm bán', 'posm', 'tờ rơi', 'standee', 'trực tiếp', 'check-in', 'sự kiện', 'quầy hàng']
+};
+
+/**
+ * Kiểm tra tính nhất quán giữa danh sách kênh và hoạt động trong timeline
+ */
+function checkChannelTimelineConsistency(idea: MarketingIdea): string[] {
+  const issues: string[] = [];
+  const timelineText = (idea.timeline || [])
+    .flatMap((w) => w.activities || [])
+    .join(' ')
+    .toLowerCase();
+
+  const stopWords = new Set(['kênh', 'qua', 'và', 'trên', 'tại', 'bằng', 'cho', 'của', 'marketing', 'chiến dịch', 'các', 'những', 'với']);
+
+  (idea.channels || []).forEach((channel) => {
+    // 1. Làm sạch ký tự đặc biệt (ngoặc đơn, ngoặc vuông, gạch chéo...)
+    const cleanChannel = channel
+      .toLowerCase()
+      .replace(/[()[\]{}"'.,:;\\/+=&_-]/g, ' ')
+      .trim();
+
+    // 2. Tách từ khóa trực tiếp
+    const words = cleanChannel
+      .split(/\s+/)
+      .map((w) => w.trim())
+      .filter((w) => w.length >= 2 && !stopWords.has(w));
+
+    // 3. Xây dựng tập từ khóa mở rộng gồm từ trực tiếp + từ đồng nghĩa nghiệp vụ
+    const searchTargets = new Set<string>();
+    words.forEach((w) => searchTargets.add(w));
+
+    for (const [key, aliases] of Object.entries(CHANNEL_SEMANTIC_ALIASES)) {
+      if (cleanChannel.includes(key)) {
+        aliases.forEach((a) => searchTargets.add(a));
+      }
+    }
+
+    // 4. Kiểm tra có ít nhất 1 từ khóa hoặc từ đồng nghĩa xuất hiện trong hoạt động timeline
+    const isCovered = searchTargets.size === 0 || Array.from(searchTargets).some((target) => timelineText.includes(target));
+
+    if (!isCovered) {
+      issues.push(
+        `Kênh "${channel}" được đề xuất nhưng không có hoạt động triển khai nào tương ứng trong 4 tuần timeline.`
+      );
+    }
+  });
+
+  return issues;
 }
 
 /**
@@ -64,6 +135,12 @@ export function validateMarketingOutput(
         }
       }
     }
+
+    // 4. Kiểm tra tính nhất quán giữa kênh và hoạt động trong timeline
+    const consistencyErrors = checkChannelTimelineConsistency(idea);
+    consistencyErrors.forEach((err) => {
+      errors.push(`Ý tưởng #${idx}: ${err}`);
+    });
   });
 
   return {
@@ -109,6 +186,12 @@ export function validateSingleIdeaMarketingOutput(
       }
     }
   }
+
+  // 3. Kiểm tra tính nhất quán giữa kênh và hoạt động trong timeline
+  const consistencyErrors = checkChannelTimelineConsistency(idea);
+  consistencyErrors.forEach((err) => {
+    errors.push(err);
+  });
 
   return {
     valid: errors.length === 0,

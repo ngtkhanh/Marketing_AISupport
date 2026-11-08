@@ -1,4 +1,4 @@
-import {
+import type {
   BudgetItem,
   BudgetItemCategory,
   CampaignProposal,
@@ -17,6 +17,7 @@ import {
   parseEstimatedBudget,
   recalculateItemPercentages
 } from './proposal-calculations';
+import { detectObjectiveType, calculateFunnelKPIs } from './kpi-calculator';
 
 /**
  * Phân tích vai trò thực hiện dựa trên nội dung hoạt động
@@ -82,8 +83,181 @@ function inferDeliverable(activity: string, role: string): string {
   return `Biên bản nghiệm thu & mốc tiến độ: ${activity.slice(0, 45)}...`;
 }
 
+export interface IdeaCharacteristics {
+  hasPaidAds: boolean;
+  hasKOC: boolean;
+  hasPromotions: boolean;
+  hasContentMedia: boolean;
+  hasCommunityOrganic: boolean;
+  matchedChannels: string[];
+}
+
 /**
- * Sinh danh sách 5 nhóm hạng mục ngân sách chuẩn Playbook cân bằng chính xác 100%
+ * Phát hiện đặc tính và kênh triển khai thực tế của ý tưởng marketing
+ */
+export function detectIdeaCharacteristics(idea: MarketingIdea): IdeaCharacteristics {
+  const channelsText = (idea.channels || []).join(' ').toLowerCase();
+  const timelineText = (idea.timeline || [])
+    .flatMap((w) => w.activities || [])
+    .join(' ')
+    .toLowerCase();
+  const allText = `${channelsText} ${timelineText} ${(idea.mainContent || '').toLowerCase()} ${(idea.title || '').toLowerCase()}`;
+
+  const hasPaidAds = /ads|quảng cáo|facebook ads|tiktok ads|google ads|meta ads|chạy ads|trả phí|paid/i.test(allText);
+  const hasKOC = /koc|kol|influencer|người ảnh hưởng|booking|tặng quà trải nghiệm/i.test(allText);
+  const hasPromotions = /voucher|khuyến mại|ưu đãi|quà tặng|minigame|giveaway|giảm giá|chiết khấu|mã giảm/i.test(allText);
+  const hasContentMedia = /video|ảnh|chụp|quay|lookbook|tvc|thiết kế|bài đăng|content|media|ấn phẩm|ebook/i.test(allText);
+  const hasCommunityOrganic = /cộng đồng|group|hội nhóm|seeding|organic|tự nhiên|email|newsletter/i.test(allText);
+
+  return {
+    hasPaidAds,
+    hasKOC,
+    hasPromotions,
+    hasContentMedia,
+    hasCommunityOrganic,
+    matchedChannels: idea.channels || []
+  };
+}
+
+/**
+ * Sinh danh sách phân bổ ngân sách động bám sát kênh và hoạt động thực tế của ý tưởng
+ */
+export function generateDynamicBudgetItems(
+  idea: MarketingIdea,
+  totalBudget: number,
+  budgetLevel: BudgetLevel
+): BudgetItem[] {
+  const chars = detectIdeaCharacteristics(idea);
+
+  interface RawItem {
+    category: BudgetItemCategory;
+    label: string;
+    weight: number;
+    note: string;
+    isContingency: boolean;
+    explanation: string;
+  }
+
+  const rawItems: RawItem[] = [];
+
+  // 1. Quảng cáo trả phí (chỉ có khi ý tưởng thực sự đề cập kênh Ads)
+  if (chars.hasPaidAds) {
+    const isHigh = budgetLevel === 'high';
+    const isMedium = budgetLevel === 'medium';
+    rawItems.push({
+      category: 'paid_ads',
+      label: isHigh
+        ? 'Chiến dịch Paid Ads tổng lực & Retargeting đa nền tảng'
+        : isMedium
+        ? 'Quảng cáo đa kênh (Meta Ads, TikTok Ads & Search)'
+        : 'Quảng cáo trực tiếp (TikTok & Meta Ads tối ưu click/lead)',
+      weight: isHigh ? 40 : isMedium ? 45 : 40,
+      note: 'Tập trung phân phối vào tệp đối tượng mục tiêu đã xác định',
+      isContingency: false,
+      explanation: 'Phân bổ theo kênh quảng cáo trả phí được đề xuất trong ý tưởng'
+    });
+  }
+
+  // 2. Hợp tác KOC / KOL (chỉ có khi ý tưởng thực sự đề cập KOC/KOL)
+  if (chars.hasKOC) {
+    const isHigh = budgetLevel === 'high';
+    rawItems.push({
+      category: 'koc_partnership',
+      label: isHigh
+        ? 'Hợp tác KOL lớn & Booking báo chí trực tuyến bảo chứng'
+        : 'Hợp tác Micro/Nano KOC & Gửi sản phẩm trải nghiệm',
+      weight: isHigh ? 30 : 25,
+      note: 'Booking và chi phí gửi hàng mẫu nhận review chân thực',
+      isContingency: false,
+      explanation: 'Phân bổ theo hoạt động hợp tác KOC/KOL xuất hiện trong ý tưởng'
+    });
+  }
+
+  // 3. Khuyến mại / Voucher / Minigame
+  if (chars.hasPromotions) {
+    rawItems.push({
+      category: 'promotions_vouchers',
+      label: 'Quà tặng khuyến mại, Voucher ưu đãi & Minigame',
+      weight: chars.hasPaidAds && chars.hasKOC ? 15 : 25,
+      note: 'Ngân sách giải thưởng minigame và chiết khấu kích thích chuyển đổi',
+      isContingency: false,
+      explanation: 'Phân bổ theo hoạt động khuyến mại / quà tặng trong nội dung chiến dịch'
+    });
+  }
+
+  // 4. Sản xuất nội dung & Media
+  const contentWeight = (!chars.hasPaidAds && !chars.hasKOC) ? 40 : 15;
+  rawItems.push({
+    category: 'content_production',
+    label: chars.hasCommunityOrganic
+      ? 'Sản xuất nội dung chuyên sâu, Ebook & Ấn phẩm cộng đồng'
+      : 'Sản xuất nội dung, chụp ảnh sản phẩm & Thiết kế media',
+    weight: contentWeight,
+    note: 'Quay dựng video ngắn, chụp ảnh sản phẩm và viết kịch bản nội dung',
+    isContingency: false,
+    explanation: 'Chi phí sản xuất tài nguyên media và thông điệp truyền thông'
+  });
+
+  // 5. Nếu không có cả Ads và KOC, bổ sung hạng mục vận hành cộng đồng / công cụ
+  if (!chars.hasPaidAds && !chars.hasKOC) {
+    rawItems.push({
+      category: 'other',
+      label: 'Vận hành cộng đồng, công cụ điều phối & Hỗ trợ chuyển đổi',
+      weight: chars.hasPromotions ? 20 : 35,
+      note: 'Phí bản quyền công cụ gửi tin, quản lý hội nhóm và chăm sóc thành viên',
+      isContingency: false,
+      explanation: 'Hỗ trợ các kênh organic/cộng đồng không phát sinh chi phí quảng cáo'
+    });
+  }
+
+  // 6. Quỹ dự phòng rủi ro (Luôn có để bảo toàn)
+  rawItems.push({
+    category: 'contingency_fund',
+    label: 'Quỹ dự phòng rủi ro & Kế hoạch B',
+    weight: budgetLevel === 'low' ? 10 : 5,
+    note: 'Dự phòng xử lý biến động thị trường hoặc kích hoạt phương án B',
+    isContingency: true,
+    explanation: 'Đảm bảo khả năng ứng phó khi gặp sự cố ngoài dự kiến'
+  });
+
+  // Chuẩn hóa tỷ lệ phần trăm theo tổng trọng số
+  const totalWeight = rawItems.reduce((sum, item) => sum + item.weight, 0);
+  let runningPercent = 0;
+  let runningSum = 0;
+
+  const items: BudgetItem[] = rawItems.map((raw, idx) => {
+    const isLast = idx === rawItems.length - 1;
+    let percentage: number;
+    let amount: number;
+
+    if (isLast) {
+      percentage = Math.round((100 - runningPercent) * 10) / 10;
+      amount = Math.max(0, totalBudget - runningSum);
+    } else {
+      percentage = Math.round((raw.weight / totalWeight) * 1000) / 10;
+      runningPercent += percentage;
+      amount = Math.round((percentage / 100) * totalBudget);
+      runningSum += amount;
+    }
+
+    return {
+      id: `budget_item_${idx + 1}`,
+      category: raw.category,
+      label: raw.label,
+      percentage,
+      amount,
+      note: raw.note,
+      isContingency: raw.isContingency,
+      provenance: 'calculated',
+      explanation: raw.explanation
+    };
+  });
+
+  return recalculateItemPercentages(items, totalBudget);
+}
+
+/**
+ * Sinh danh sách 5 nhóm hạng mục ngân sách chuẩn Playbook (tương thích ngược)
  */
 function generateBudgetItems(totalBudget: number, budgetLevel: BudgetLevel): BudgetItem[] {
   interface TemplateCategory {
@@ -233,7 +407,8 @@ function generateBudgetItems(totalBudget: number, budgetLevel: BudgetLevel): Bud
       percentage: tmpl.percentage,
       amount,
       note: tmpl.note,
-      isContingency: tmpl.isContingency
+      isContingency: tmpl.isContingency,
+      provenance: 'calculated'
     };
   });
 
@@ -241,107 +416,93 @@ function generateBudgetItems(totalBudget: number, budgetLevel: BudgetLevel): Bud
 }
 
 /**
- * Sinh 3 kịch bản KPI dựa trên tổng ngân sách và mục tiêu chiến dịch
+ * Sinh 3 kịch bản KPI dựa trên tổng ngân sách, mục tiêu và kênh thực tế
  */
-function generateKpiScenarios(totalBudget: number, objective: string): KPIScenario[] {
-  // Benchmark chuẩn cho SME Việt Nam
-  const isLeadFocus = objective.toLowerCase().includes('đơn') || objective.toLowerCase().includes('chuyển đổi') || objective.toLowerCase().includes('doanh số');
-  const baseReachRatio = isLeadFocus ? 380 : 320; // 1 VNĐ mang lại bao nhiêu lượt tiếp cận
-  const estimatedReachBase = Math.max(5000, Math.round(totalBudget / baseReachRatio));
-
-  return [
-    {
-      name: 'conservative',
-      label: 'Kịch bản Thận trọng',
-      reach: Math.round(estimatedReachBase * 0.75),
-      impressions: Math.round(estimatedReachBase * 0.75 * 1.35),
-      leads: Math.max(50, Math.round(estimatedReachBase * 0.75 * 0.02)),
-      orders: Math.max(15, Math.round(totalBudget / 220000)),
-      targetCPO: Math.round(totalBudget / Math.max(15, Math.round(totalBudget / 220000))),
-      cac: Math.round((totalBudget * 0.85) / Math.max(12, Math.round(totalBudget / 220000 * 0.75))),
-      assumptions: [
-        'Tỷ lệ chốt tin nhắn duy trì ở mức an toàn 8% - 10%',
-        'Chi phí giá thầu quảng cáo (CPM) chạm trần khung giờ cao điểm',
-        'Nội dung không xuất hiện yếu tố viral tự nhiên; phụ thuộc 90% vào phân phối trả phí',
-        'KOC trả bài đạt mức đạt yêu cầu cơ bản, không có bài bứt phá xu hướng'
-      ]
-    },
-    {
-      name: 'base',
-      label: 'Kịch bản Cơ sở',
-      reach: estimatedReachBase,
-      impressions: Math.round(estimatedReachBase * 1.5),
-      leads: Math.max(120, Math.round(estimatedReachBase * 0.038)),
-      orders: Math.max(25, Math.round(totalBudget / 140000)),
-      targetCPO: Math.round(totalBudget / Math.max(25, Math.round(totalBudget / 140000))),
-      cac: Math.round((totalBudget * 0.85) / Math.max(20, Math.round(totalBudget / 140000 * 0.75))),
-      assumptions: [
-        'Tỷ lệ phản hồi tin nhắn trong vòng 5 phút đạt trên 85%, tỷ lệ chốt đạt 15% - 18%',
-        'Video ngắn giữ chân người xem 3 giây đầu tiên vượt mức benchmark 30%',
-        'Ít nhất 1-2 KOC mang lại lượng tương tác thảo luận tự nhiên tốt',
-        'Mã khuyến mại và cổng thanh toán hoạt động ổn định 100% không gặp sự cố'
-      ]
-    },
-    {
-      name: 'optimistic',
-      label: 'Kịch bản Tích cực',
-      reach: Math.round(estimatedReachBase * 1.5),
-      impressions: Math.round(estimatedReachBase * 1.5 * 1.8),
-      leads: Math.max(250, Math.round(estimatedReachBase * 1.5 * 0.055)),
-      orders: Math.max(45, Math.round(totalBudget / 95000)),
-      targetCPO: Math.round(totalBudget / Math.max(45, Math.round(totalBudget / 95000))),
-      cac: Math.round((totalBudget * 0.85) / Math.max(35, Math.round(totalBudget / 95000 * 0.75))),
-      assumptions: [
-        'Tối thiểu 1 video đạt triệu views hoặc lọt vào tab thịnh hành tự nhiên của TikTok/Reels',
-        'Hiệu ứng truyền miệng (WOM) cao, tỷ lệ khách tự chia sẻ minigame vượt 20%',
-        'Tỷ lệ chốt sales đạt trên 22% nhờ kịch bản tư vấn xuất sắc và ưu đãi hấp dẫn',
-        'KOC chủ động gắn link affiliate và re-up trên các kênh phụ gia tăng chuyển đổi'
-      ]
-    }
-  ];
+export function generateKpiScenarios(
+  idea: MarketingIdea,
+  totalBudget: number,
+  objective: string
+): KPIScenario[] {
+  const chars = detectIdeaCharacteristics(idea);
+  const objectiveType = detectObjectiveType(objective);
+  return calculateFunnelKPIs({
+    totalBudget,
+    objectiveType,
+    hasPaidAds: chars.hasPaidAds
+  });
 }
 
 /**
  * Tạo danh sách checklist gồm Pre-launch (3-5 ngày trước giờ G) và 4 tuần từ Timeline ý tưởng
  */
 function generateExecutionChecklist(idea: MarketingIdea): ExecutionTask[] {
+  const chars = detectIdeaCharacteristics(idea);
   const checklist: ExecutionTask[] = [];
 
   // 1. Pre-launch Tasks (3-5 ngày trước giờ G)
-  const preLaunchTemplates = [
-    {
-      task: 'Quay chụp và hoàn thiện bộ tài nguyên Media (10 video ngắn + 15 ảnh sản phẩm)',
-      role: 'Content/Thiết kế',
-      dueDate: 'D-5',
-      deliverable: 'Drive thư mục media đạt chuẩn duyệt nhận diện của Brand'
-    },
-    {
-      task: 'Thiết lập mã giảm giá, cấu hình kho hàng và kiểm thử luồng đặt mua trên POS',
-      role: 'Vận hành/Ads',
-      dueDate: 'D-3',
-      deliverable: '3 mã voucher kích hoạt thành công và kiểm tra đặt thử 1 đơn test'
-    },
-    {
-      task: 'Soạn kịch bản tư vấn FAQ, mẫu trả lời comment tự động và quy trình xử lý khiếu nại',
-      role: 'CSKH/Sales',
-      dueDate: 'D-2',
-      deliverable: 'File kịch bản xử lý 10 tình huống thường gặp cho nhân sự trực page'
-    },
-    {
+  const preLaunchList: { task: string; role: string; dueDate: string; deliverable: string }[] = [];
+
+  // Content media
+  preLaunchList.push({
+    task: chars.hasCommunityOrganic
+      ? 'Soạn thảo tài liệu hướng dẫn/Ebook, thiết kế ảnh bìa và bài đăng thông báo mở màn'
+      : 'Quay chụp và hoàn thiện bộ tài nguyên Media (video ngắn + ảnh sản phẩm)',
+    role: 'Content/Thiết kế',
+    dueDate: 'D-5',
+    deliverable: 'Drive thư mục media đạt chuẩn nhận diện thương hiệu'
+  });
+
+  // Sales / Kho hàng / Voucher
+  preLaunchList.push({
+    task: chars.hasPromotions
+      ? 'Thiết lập mã giảm giá, cấu hình kho hàng và kiểm thử luồng đặt mua trên POS'
+      : 'Chuẩn bị sản phẩm mẫu, kiểm kê tồn kho và quy trình tiếp nhận đơn',
+    role: 'CSKH/Sales',
+    dueDate: 'D-3',
+    deliverable: 'Quy trình tiếp nhận và kiểm thử thành công'
+  });
+
+  // Kịch bản tư vấn
+  preLaunchList.push({
+    task: 'Soạn kịch bản tư vấn FAQ, mẫu trả lời comment tự động và quy trình xử lý thắc mắc',
+    role: 'CSKH/Sales',
+    dueDate: 'D-2',
+    deliverable: 'File kịch bản xử lý 10 tình huống thường gặp cho nhân sự trực page'
+  });
+
+  // Kênh triển khai
+  if (chars.hasPaidAds) {
+    preLaunchList.push({
       task: 'Nạp ngân sách vào tài khoản quảng cáo, cài đặt Pixel đo lường và tạo sẵn nhóm Ads',
       role: 'Vận hành/Ads',
       dueDate: 'D-1',
       deliverable: 'Chiến dịch quảng cáo đã qua bước xét duyệt (Status: Ready)'
-    },
-    {
-      task: 'Họp Briefing toàn team chốt mục tiêu KPI, phân chia ca trực và kích hoạt chiến dịch',
+    });
+  } else if (chars.hasKOC) {
+    preLaunchList.push({
+      task: 'Liên hệ danh sách KOC đã chọn, gửi sản phẩm trải nghiệm và chốt timeline lên bài',
       role: 'Lead/Điều phối',
+      dueDate: 'D-2',
+      deliverable: 'Danh sách 3-5 KOC xác nhận nhận hàng và lịch lên bài'
+    });
+  } else {
+    preLaunchList.push({
+      task: 'Thiết lập nhóm cộng đồng, gắn link tài liệu quà tặng và đăng bài thông báo mở màn',
+      role: 'Content/Thiết kế',
       dueDate: 'D-1',
-      deliverable: 'Biên bản thống nhất mục tiêu và lịch trực phản hồi khách hàng 24/7'
-    }
-  ];
+      deliverable: 'Không gian cộng đồng sẵn sàng tiếp nhận thành viên'
+    });
+  }
 
-  preLaunchTemplates.forEach((t, i) => {
+  // Họp briefing
+  preLaunchList.push({
+    task: 'Họp Briefing toàn team chốt mục tiêu, phân chia ca trực và kích hoạt chiến dịch',
+    role: 'Lead/Điều phối',
+    dueDate: 'D-1',
+    deliverable: 'Biên bản thống nhất mục tiêu và lịch trực phản hồi khách hàng'
+  });
+
+  preLaunchList.forEach((t, i) => {
     checklist.push({
       id: `task_pre_${i + 1}`,
       stage: 'pre_launch',
@@ -349,7 +510,8 @@ function generateExecutionChecklist(idea: MarketingIdea): ExecutionTask[] {
       role: t.role,
       dueDate: t.dueDate,
       deliverable: t.deliverable,
-      completed: false
+      completed: false,
+      provenance: 'assumption'
     });
   });
 
@@ -373,7 +535,8 @@ function generateExecutionChecklist(idea: MarketingIdea): ExecutionTask[] {
         role,
         dueDate: `Tuần ${w.week} - Ngày ${actIdx * 2 + 1}`,
         deliverable,
-        completed: false
+        completed: false,
+        provenance: 'user_provided'
       });
     });
   });
@@ -382,29 +545,60 @@ function generateExecutionChecklist(idea: MarketingIdea): ExecutionTask[] {
 }
 
 /**
- * Sinh 2 kịch bản dự phòng rủi ro chính kèm checkpoint và Plan B
+ * Sinh các kịch bản dự phòng rủi ro chính bám sát kênh thực tế kèm checkpoint và Plan B
  */
-function generateContingencyTriggers(totalBudget: number): ContingencyTrigger[] {
-  return [
-    {
-      id: 'trigger_1',
-      risk: 'Lượt tiếp cận và tương tác hữu cơ tuần đầu không đạt 3.000 Reach sau 5 ngày mở màn',
-      checkpointDay: 'Ngày 5',
-      triggerMetric: 'Reach tự nhiên & Lượt tương tác bài đăng',
-      triggerCondition: '< 3.000 Reach hoặc dưới 100 lượt tham gia minigame sau 5 ngày',
-      correctiveAction: 'Trích từ Quỹ dự phòng để chạy Spark Ads / Boost Post nhắm thẳng vào bài viết có tỷ lệ giữ chân cao nhất',
-      maxBudgetCap: Math.round(totalBudget * 0.05)
-    },
-    {
-      id: 'trigger_2',
+function generateContingencyTriggers(idea: MarketingIdea, totalBudget: number): ContingencyTrigger[] {
+  const chars = detectIdeaCharacteristics(idea);
+  const triggers: ContingencyTrigger[] = [];
+
+  if (chars.hasKOC) {
+    triggers.push({
+      id: 'trigger_koc',
       risk: 'KOC nhận hàng mẫu nhưng chậm lịch trả video quá 48h hoặc chất lượng video không đạt yêu cầu duyệt',
       checkpointDay: 'Tuần 2 - Ngày 3',
       triggerMetric: 'Tiến độ bàn giao video KOC & Tỷ lệ duyệt video',
       triggerCondition: 'Quá hạn cam kết 48 tiếng chưa nộp bản nháp hoặc KOC đơn phương hủy hợp tác',
       correctiveAction: 'Kích hoạt ngay danh sách 2 Micro KOC dự phòng đã liên hệ trước, đồng thời đẩy ngân sách sang định dạng Content nhân viên nội bộ',
       maxBudgetCap: Math.round(totalBudget * 0.04)
-    }
-  ];
+    });
+  }
+
+  if (chars.hasPaidAds) {
+    triggers.push({
+      id: 'trigger_ads_cpm',
+      risk: 'Chi phí giá thầu quảng cáo (CPM) tăng đột biến > 40% hoặc tỷ lệ click (CTR) dưới 0.8% sau 3 ngày',
+      checkpointDay: 'Ngày 3',
+      triggerMetric: 'CPM & CTR trên tài khoản quảng cáo',
+      triggerCondition: 'CPM vượt 120.000 VNĐ hoặc CTR < 0.8% liên tục trong 48h',
+      correctiveAction: 'Tạm dừng các nhóm ads kém hiệu quả, thay hook video mới và thu hẹp tệp đối tượng tương tự (Lookalike)',
+      maxBudgetCap: Math.round(totalBudget * 0.05)
+    });
+  }
+
+  if (chars.hasCommunityOrganic || (!chars.hasPaidAds && !chars.hasKOC)) {
+    triggers.push({
+      id: 'trigger_organic_reach',
+      risk: 'Lượt tiếp cận và tương tác bài đăng tuần đầu không đạt mức kỳ vọng tối thiểu sau 5 ngày mở màn',
+      checkpointDay: 'Ngày 5',
+      triggerMetric: 'Lượt tương tác, thảo luận và số người tham gia',
+      triggerCondition: 'Dưới 50 lượt tương tác bài mở màn hoặc dưới 30 người đăng ký tham gia sau 5 ngày',
+      correctiveAction: 'Tổ chức mini-livestream ngắn giải đáp, nhắn tin trực tiếp mời 20 khách quen đầu tiên kích hoạt thảo luận',
+      maxBudgetCap: Math.round(totalBudget * 0.04)
+    });
+  }
+
+  // Trigger chung về chuyển đổi
+  triggers.push({
+    id: 'trigger_conversion_rate',
+    risk: 'Tỷ lệ phản hồi hoặc chuyển đổi đơn hàng tuần thứ 3 thấp hơn 40% so với dự tính',
+    checkpointDay: 'Tuần 3 - Ngày 4',
+    triggerMetric: 'Tỷ lệ chốt đơn / phản hồi tin nhắn',
+    triggerCondition: 'Tỷ lệ chốt đơn đạt dưới 5% trên tổng số khách hỏi',
+    correctiveAction: 'Rà soát lại kịch bản tư vấn, tung thêm voucher trợ giá số lượng giới hạn để kích cầu chốt đơn nhanh',
+    maxBudgetCap: Math.round(totalBudget * 0.04)
+  });
+
+  return triggers;
 }
 
 /**
@@ -434,7 +628,7 @@ export function generateDefaultProposal(
   context: Pick<CampaignInput, 'industry' | 'productName' | 'budgetLevel' | 'objective'>
 ): CampaignProposal {
   const totalBudget = parseEstimatedBudget(idea.estimatedBudget, context.budgetLevel);
-  const budgetItems = generateBudgetItems(totalBudget, context.budgetLevel);
+  const budgetItems = generateDynamicBudgetItems(idea, totalBudget, context.budgetLevel);
   const summary = calculateAllocationSummary(budgetItems, totalBudget);
 
   const budgetAllocation = {
@@ -445,9 +639,9 @@ export function generateDefaultProposal(
     currency: 'VND'
   };
 
-  const kpiScenarios = generateKpiScenarios(totalBudget, context.objective);
+  const kpiScenarios = generateKpiScenarios(idea, totalBudget, context.objective);
   const checklist = generateExecutionChecklist(idea);
-  const contingencyTriggers = generateContingencyTriggers(totalBudget);
+  const contingencyTriggers = generateContingencyTriggers(idea, totalBudget);
   const executiveDecision = generateExecutiveDecision(idea, totalBudget, context.objective);
 
   const timestamp = new Date().toISOString();
@@ -459,7 +653,7 @@ export function generateDefaultProposal(
     version: idea.version || 1,
     createdAt: timestamp,
     updatedAt: timestamp,
-    status: 'ready_for_review',
+    status: 'draft',
     context,
     ideaSnapshot: JSON.parse(JSON.stringify(idea)),
     executiveDecision,
@@ -467,7 +661,7 @@ export function generateDefaultProposal(
     kpiScenarios,
     checklist,
     contingencyTriggers,
-    notes: 'Bản đề xuất được khởi tạo tự động từ Playbook & Snapshot ý tưởng ban đầu. Bạn có thể chỉnh sửa trực tiếp từng hạng mục trước khi xuất bản hoặc in ấn.'
+    notes: 'Bản đề xuất ở trạng thái Nháp (Draft). Vui lòng rà soát các giả định và hạng mục phân bổ trước khi chuyển sang trạng thái Sẵn sàng duyệt (Ready for review).'
   };
 }
 

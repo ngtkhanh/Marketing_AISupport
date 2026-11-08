@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ExecutiveDecision } from '@/types/marketing';
+import { ExecutiveDecision, ProposalStatus } from '@/types/marketing';
 import { formatVND } from '@/lib/proposal-calculations';
 import {
   FileCheck2,
@@ -11,19 +11,22 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
-  Edit3
+  Edit3,
+  FileQuestion
 } from 'lucide-react';
 
 interface ExecutiveDecisionBannerProps {
   decision: ExecutiveDecision;
   onChange?: (updated: ExecutiveDecision) => void;
   readOnly?: boolean;
+  status?: ProposalStatus;
 }
 
 export const ExecutiveDecisionBanner: React.FC<ExecutiveDecisionBannerProps> = ({
   decision,
   onChange,
-  readOnly = false
+  readOnly = false,
+  status = 'draft'
 }) => {
   const handleDecisionAskChange = (text: string) => {
     if (readOnly || !onChange) return;
@@ -59,10 +62,24 @@ export const ExecutiveDecisionBanner: React.FC<ExecutiveDecisionBannerProps> = (
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-white/90 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-xs text-xs">
-          <UserCheck className="w-4 h-4 text-indigo-600 shrink-0" />
-          <span className="text-slate-500 font-medium">Người duyệt thẩm quyền:</span>
-          <span className="font-bold text-slate-800">{decision.approverRole}</span>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {status === 'draft' ? (
+            <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg text-xs font-bold">
+              <FileQuestion className="w-3.5 h-3.5 text-amber-600" />
+              Bản Nháp (Cần xác nhận giả định)
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg text-xs font-bold">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              Sẵn Sàng Duyệt
+            </span>
+          )}
+
+          <div className="flex items-center gap-2 bg-white/90 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-xs text-xs">
+            <UserCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span className="text-slate-500 font-medium">Người duyệt thẩm quyền:</span>
+            <span className="font-bold text-slate-800">{decision.approverRole}</span>
+          </div>
         </div>
       </div>
 

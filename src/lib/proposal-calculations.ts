@@ -1,4 +1,4 @@
-import { BudgetItem, BudgetLevel } from '@/types/marketing';
+import type { BudgetItem, BudgetLevel } from '@/types/marketing';
 
 /**
  * Tóm tắt trạng thái phân bổ ngân sách

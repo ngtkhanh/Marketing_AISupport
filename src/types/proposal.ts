@@ -1,6 +1,16 @@
 import type { CampaignInput, MarketingIdea } from './marketing';
 
 /**
+ * Nguồn gốc / 3 lớp phân loại dữ liệu theo Mục 10.4
+ */
+export type DataProvenance = 'user_provided' | 'calculated' | 'assumption';
+
+/**
+ * Phân loại mục tiêu chiến dịch để tối ưu phễu KPI
+ */
+export type ObjectiveType = 'awareness' | 'lead_generation' | 'sales' | 'retention';
+
+/**
  * Danh mục chi phí phân bổ ngân sách
  */
 export type BudgetItemCategory =
@@ -29,6 +39,10 @@ export interface BudgetItem {
   note: string;
   /** Đánh dấu hạng mục thuộc quỹ dự phòng rủi ro */
   isContingency: boolean;
+  /** Lớp dữ liệu: Bạn cung cấp / Hệ thống tính / Giả định cần xác nhận */
+  provenance?: DataProvenance;
+  /** Giải thích mối liên hệ với kênh và hoạt động của ý tưởng */
+  explanation?: string;
 }
 
 /**
@@ -74,6 +88,17 @@ export interface KPIScenario {
   cac: number;
   /** Danh sách giả định đo lường & điều kiện tiên quyết để đạt kịch bản này */
   assumptions: string[];
+  /** Phân loại mục tiêu tương ứng của kịch bản */
+  objectiveType?: ObjectiveType;
+  /** Các bước phễu minh bạch (nếu là mục tiêu chuyển đổi hoặc tạo lead) */
+  funnelSteps?: {
+    label: string;
+    value: number;
+    unit: string;
+    assumptionNote?: string;
+  }[];
+  /** Bản đồ provenance cho từng chỉ số */
+  provenanceMap?: Record<string, DataProvenance>;
 }
 
 /**
@@ -108,6 +133,8 @@ export interface ExecutionTask {
   dependency?: string;
   /** Trạng thái đã hoàn thành hay chưa */
   completed: boolean;
+  /** Lớp dữ liệu phân loại */
+  provenance?: DataProvenance;
 }
 
 /**
