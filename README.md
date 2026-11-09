@@ -9,7 +9,7 @@
 | Đề bài bốc thăm | Đề số 09 — AI gợi ý ý tưởng chiến dịch marketing theo ngân sách |
 | Demo online | https://marketing-ai-support.vercel.app |
 | Video demo (2p30s) | `https://drive.google.com/file/d/14Jjnlu6B_nB5LdOeQ3jjH-uJdX7m6D25/view?usp=sharing` |
-| Source ZIP | `<URL tải gói mã nguồn ZIP>` |
+| Source ZIP | `https://github.com/ngtkhanh/Marketing_AISupport/archive/refs/tags/v1.0.0.zip` |
 | Minh chứng dùng AI | Kèm folder `docs/Minh chứng` trong gói mã nguồn ZIP |
 | Bảng kiểm thử | Kèm file `docs/TEST_CASES.md` trong gói mã nguồn ZIP (15 ca kiểm thử — 100% Đạt) |
 
