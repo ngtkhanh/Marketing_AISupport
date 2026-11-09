@@ -132,12 +132,17 @@ YÊU CẦU TINH CHỈNH TỪ NGƯỜI DÙNG:
 Hãy phân tích yêu cầu trên và cập nhật lại chiến dịch. Nêu rõ lý do thay đổi và tóm tắt những điểm mới trong JSON trả về.`;
 }
 
+// Ngân sách thời gian toàn cục cho route tinh chỉnh (maxDuration = 60s)
+const GLOBAL_REFINE_DEADLINE_MS = 48000; // 48s (dành biên an toàn 12s cho Vercel 60s)
+const SINGLE_REFINE_TIMEOUT_MS = 20000; // 20s tối đa cho 1 lần gọi
+const MIN_REMAINING_REFINE_MS = 8000; // Dưới 8s không đủ để sinh JSON tinh chỉnh, ngắt để fallback
+
 async function callRefineGeminiOnce(
   ai: GoogleGenAI,
   modelName: string,
   systemPrompt: string,
   userPrompt: string,
-  timeoutMs = 35000
+  timeoutMs = SINGLE_REFINE_TIMEOUT_MS
 ): Promise<string> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
@@ -189,6 +194,7 @@ export async function refineMarketingIdeaWithGemini(
   const systemPrompt = buildRefinementSystemPrompt(context);
   const baseUserPrompt = buildRefinementUserPrompt(currentIdea, context, instruction);
 
+  const startTime = Date.now();
   let lastErrorMsg = '';
   let activeModel = preferredModel;
 
@@ -196,13 +202,31 @@ export async function refineMarketingIdeaWithGemini(
     activeModel = candidateModels[modelIdx];
 
     for (let attempt = 1; attempt <= 2; attempt++) {
+      const elapsed = Date.now() - startTime;
+      const remainingTime = GLOBAL_REFINE_DEADLINE_MS - elapsed;
+
+      // Kiểm tra ngân sách thời gian: Nếu không còn đủ thời gian an toàn, ngắt để fallback ngay
+      if (remainingTime < MIN_REMAINING_REFINE_MS) {
+        console.warn(
+          `[REFINE DEADLINE] Ngân sách thời gian cạn (${remainingTime}ms còn lại). Kích hoạt ngắt an toàn để fallback trước khi Vercel timeout.`
+        );
+        return {
+          ok: false,
+          code: 'TIMEOUT',
+          message: 'Thời gian tinh chỉnh AI vượt quá ngân sách an toàn.',
+          canFallback: true
+        };
+      }
+
+      const callTimeout = Math.min(SINGLE_REFINE_TIMEOUT_MS, Math.max(5000, remainingTime - 1500));
+
       const userPrompt =
         attempt === 1
           ? baseUserPrompt
           : `${baseUserPrompt}\n\n[LƯU Ý LẦN THỬ LẠI]: Lần trước gặp lỗi "${lastErrorMsg}". Hãy đảm bảo: đúng 4 tuần timeline, không dùng kênh bị cấm, chỉ sửa các trường cần thiết.`;
 
       try {
-        const rawText = await callRefineGeminiOnce(ai, activeModel, systemPrompt, userPrompt);
+        const rawText = await callRefineGeminiOnce(ai, activeModel, systemPrompt, userPrompt, callTimeout);
         if (!rawText) throw new Error('Gemini API trả về nội dung rỗng');
 
         // Lớp 1: Parse JSON
@@ -296,6 +320,9 @@ export async function refineMarketingIdeaWithGemini(
 
         if (error.name === 'TimeoutError' || errMsg.includes('timed out')) {
           lastErrorMsg = 'Quá hạn phản hồi';
+          if (GLOBAL_REFINE_DEADLINE_MS - (Date.now() - startTime) < MIN_REMAINING_REFINE_MS) {
+            break;
+          }
           if (attempt === 1) continue;
           break;
         }
@@ -335,10 +362,16 @@ export async function refineMarketingIdeaWithGemini(
     }
   }
 
+  const isTimeout =
+    lastErrorMsg === 'Quá hạn phản hồi' ||
+    Date.now() - startTime >= GLOBAL_REFINE_DEADLINE_MS - MIN_REMAINING_REFINE_MS;
+
   return {
     ok: false,
-    code: 'API_ERROR',
-    message: `Không thể tinh chỉnh ý tưởng: ${lastErrorMsg}`,
+    code: isTimeout ? 'TIMEOUT' : 'API_ERROR',
+    message: isTimeout
+      ? 'Thời gian tinh chỉnh AI vượt quá giới hạn an toàn máy chủ.'
+      : `Không thể tinh chỉnh ý tưởng: ${lastErrorMsg}`,
     canFallback: true
   };
 }

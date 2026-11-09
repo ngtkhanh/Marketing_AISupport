@@ -145,8 +145,8 @@ export async function validateCampaignInputSemantics(
     'gemini-3-flash-preview'
   ].filter((m): m is string => Boolean(m && m.trim().length > 0));
 
-  // Loại bỏ trùng lặp
-  const uniqueModels = Array.from(new Set(candidateGuardModels));
+  // Loại bỏ trùng lặp và giới hạn tối đa 2 candidate model để tiết kiệm ngân sách thời gian
+  const uniqueModels = Array.from(new Set(candidateGuardModels)).slice(0, 2);
 
   const ai = new GoogleGenAI({ apiKey });
 
@@ -159,14 +159,25 @@ export async function validateCampaignInputSemantics(
 
 Hãy trả về JSON theo schema quy định.`;
 
+  const guardStartTime = Date.now();
+  const MAX_GUARDRAIL_BUDGET_MS = 10000; // Tối đa 10s cho toàn bộ khâu Guardrail
+
   for (const modelName of uniqueModels) {
+    const elapsed = Date.now() - guardStartTime;
+    const remainingTime = MAX_GUARDRAIL_BUDGET_MS - elapsed;
+    if (remainingTime < 3000) {
+      console.warn('[Guardrail] Quỹ thời gian Guardrail sắp hết. Kích hoạt Fail-Open để nhường thời gian cho luồng chính.');
+      return { isValid: true };
+    }
+
     try {
+      const callTimeout = Math.min(6000, remainingTime);
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           const err = new Error('Guardrail timeout');
           err.name = 'TimeoutError';
           reject(err);
-        }, 8000); // Nâng timeout lên 8s để không ngắt oan khi mạng trễ
+        }, callTimeout); // Timeout linh hoạt theo ngân sách còn lại
       });
 
       const apiPromise = ai.models.generateContent({

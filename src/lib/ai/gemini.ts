@@ -83,15 +83,20 @@ const GEMINI_SCHEMA = {
   required: ['ideas']
 };
 
+// Ngân sách thời gian toàn cục để không bao giờ bị Vercel 60s timeout đập chết tiến trình
+const GLOBAL_DEADLINE_MS = 48000; // 48 giây (dành biên an toàn 12s cho route maxDuration = 60s)
+const SINGLE_CALL_TIMEOUT_MS = 20000; // 20 giây tối đa cho 1 lượt gọi model
+const MIN_REMAINING_FOR_CALL_MS = 8000; // Dưới 8s không đủ để sinh 5 ý tưởng, ngắt ngay để kịp fallback
+
 /**
- * Gọi Gemini API với timeout 35 giây và 3 lớp kiểm soát đầu ra
+ * Gọi Gemini API với timeout linh hoạt và 3 lớp kiểm soát đầu ra
  */
 async function callGeminiOnce(
   ai: GoogleGenAI,
   modelName: string,
   systemPrompt: string,
   userPrompt: string,
-  timeoutMs = 35000
+  timeoutMs = SINGLE_CALL_TIMEOUT_MS
 ): Promise<string> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
@@ -145,6 +150,7 @@ export async function generateMarketingIdeasWithGemini(
   const systemPrompt = buildSystemPrompt(input);
   const baseUserPrompt = buildUserPrompt(input);
 
+  const startTime = Date.now();
   let lastErrorMsg = '';
   let activeModel = preferredModel;
 
@@ -152,13 +158,32 @@ export async function generateMarketingIdeasWithGemini(
     activeModel = candidateModels[modelIdx];
 
     for (let attempt = 1; attempt <= 2; attempt++) {
+      const elapsed = Date.now() - startTime;
+      const remainingTime = GLOBAL_DEADLINE_MS - elapsed;
+
+      // Kiểm tra ngân sách thời gian: Nếu không còn đủ thời gian an toàn, ngắt để fallback ngay
+      if (remainingTime < MIN_REMAINING_FOR_CALL_MS) {
+        console.warn(
+          `[GEMINI DEADLINE] Ngân sách thời gian cạn (${remainingTime}ms còn lại). Kích hoạt ngắt an toàn để fallback trước khi Vercel timeout.`
+        );
+        return {
+          ok: false,
+          code: 'TIMEOUT',
+          message: 'Thời gian gọi AI vượt quá ngân sách an toàn của máy chủ.',
+          canFallback: true
+        };
+      }
+
+      // Đặt timeout cho lần gọi này dựa trên thời gian còn lại (tối đa SINGLE_CALL_TIMEOUT_MS)
+      const callTimeout = Math.min(SINGLE_CALL_TIMEOUT_MS, Math.max(5000, remainingTime - 1500));
+
       const userPrompt =
         attempt === 1
           ? baseUserPrompt
           : `${baseUserPrompt}\n\n[LƯU Ý KHẨN CẤP CHO LẦN THỬ LẠI - SỬA LỖI NGHIỆP VỤ]:\nLần tạo trước bị vi phạm lỗi sau: "${lastErrorMsg}".\nHÃY SỬA TRIỆT ĐỂ:\n1. Mọi kênh trong mảng 'channels' của mỗi ý tưởng BẮT BUỘC phải có hoạt động triển khai cụ thể trong 4 tuần timeline (hãy ghi rõ tên kênh ở đầu hoạt động, ví dụ: '[Tên kênh] Hoạt động...'). Tuyệt đối không để kênh nào bị bỏ quên.\n2. Đảm bảo đúng 5 ý tưởng khác biệt, mỗi ý tưởng có đủ 4 tuần tuần tự (week 1 đến 4).\n3. Không dùng bất kỳ kênh bị cấm nào đối với mức ngân sách đã chọn.`;
 
       try {
-        const rawText = await callGeminiOnce(ai, activeModel, systemPrompt, userPrompt);
+        const rawText = await callGeminiOnce(ai, activeModel, systemPrompt, userPrompt, callTimeout);
         if (!rawText) {
           throw new Error('Gemini API trả về nội dung rỗng');
         }
@@ -230,6 +255,9 @@ export async function generateMarketingIdeasWithGemini(
         // Kiểm tra lỗi Timeout
         if (error.name === 'TimeoutError' || errMsg.includes('timed out')) {
           lastErrorMsg = 'Quá hạn phản hồi';
+          if (GLOBAL_DEADLINE_MS - (Date.now() - startTime) < MIN_REMAINING_FOR_CALL_MS) {
+            break;
+          }
           if (attempt === 1) continue;
           break;
         }
@@ -272,10 +300,16 @@ export async function generateMarketingIdeasWithGemini(
     }
   }
 
+  const isTimeout =
+    lastErrorMsg === 'Quá hạn phản hồi' ||
+    Date.now() - startTime >= GLOBAL_DEADLINE_MS - MIN_REMAINING_FOR_CALL_MS;
+
   return {
     ok: false,
-    code: 'API_ERROR',
-    message: `Thử nghiệm các model AI không thành công: ${lastErrorMsg}`,
+    code: isTimeout ? 'TIMEOUT' : 'API_ERROR',
+    message: isTimeout
+      ? 'Thời gian gọi AI vượt quá giới hạn an toàn máy chủ.'
+      : `Thử nghiệm các model AI không thành công: ${lastErrorMsg}`,
     canFallback: true
   };
 }

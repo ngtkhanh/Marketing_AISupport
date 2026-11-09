@@ -136,12 +136,17 @@ export function getFallbackAICMOVerdict(entries: ShortlistEntry[]): AICMOVerdict
   };
 }
 
+// Ngân sách thời gian toàn cục cho route so sánh (maxDuration = 45s)
+const GLOBAL_COMPARE_DEADLINE_MS = 36000; // 36s (dành biên an toàn 9s cho Vercel 45s)
+const SINGLE_COMPARE_TIMEOUT_MS = 18000; // 18s tối đa cho 1 lần gọi
+const MIN_REMAINING_COMPARE_MS = 7000; // Dưới 7s không đủ thời gian phân tích, ngắt để fallback
+
 async function callGeminiCompareOnce(
   ai: GoogleGenAI,
   modelName: string,
   systemPrompt: string,
   userPrompt: string,
-  timeoutMs = 30000
+  timeoutMs = SINGLE_COMPARE_TIMEOUT_MS
 ): Promise<string> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
@@ -191,13 +196,31 @@ export async function evaluateStrategiesWithGeminiCMO(
   const systemPrompt = buildCompareSystemPrompt();
   const userPrompt = buildCompareUserPrompt(entries);
 
+  const startTime = Date.now();
   let lastErrorMsg = '';
 
   for (let modelIdx = 0; modelIdx < candidateModels.length; modelIdx++) {
     const activeModel = candidateModels[modelIdx];
 
+    const elapsed = Date.now() - startTime;
+    const remainingTime = GLOBAL_COMPARE_DEADLINE_MS - elapsed;
+
+    if (remainingTime < MIN_REMAINING_COMPARE_MS) {
+      console.warn(
+        `[COMPARE DEADLINE] Ngân sách thời gian cạn (${remainingTime}ms còn lại). Dừng để fallback trước khi Vercel timeout.`
+      );
+      return {
+        ok: false,
+        code: 'TIMEOUT',
+        message: 'Thời gian phân tích so sánh AI vượt quá ngân sách an toàn.',
+        canFallback: true
+      };
+    }
+
+    const callTimeout = Math.min(SINGLE_COMPARE_TIMEOUT_MS, Math.max(5000, remainingTime - 1500));
+
     try {
-      const rawText = await callGeminiCompareOnce(ai, activeModel, systemPrompt, userPrompt);
+      const rawText = await callGeminiCompareOnce(ai, activeModel, systemPrompt, userPrompt, callTimeout);
       if (!rawText) throw new Error('API trả về rỗng');
 
       let parsed: unknown;
@@ -224,6 +247,14 @@ export async function evaluateStrategiesWithGeminiCMO(
       const error = err as { message?: string; name?: string };
       const msg = error.message || '';
 
+      if (error.name === 'TimeoutError' || msg.includes('timed out')) {
+        lastErrorMsg = 'Quá hạn phản hồi';
+        if (GLOBAL_COMPARE_DEADLINE_MS - (Date.now() - startTime) < MIN_REMAINING_COMPARE_MS) {
+          break;
+        }
+        continue;
+      }
+
       if (msg.includes('503') || msg.includes('404') || msg.includes('UNAVAILABLE')) {
         continue;
       }
@@ -241,10 +272,16 @@ export async function evaluateStrategiesWithGeminiCMO(
     }
   }
 
+  const isTimeout =
+    lastErrorMsg === 'Quá hạn phản hồi' ||
+    Date.now() - startTime >= GLOBAL_COMPARE_DEADLINE_MS - MIN_REMAINING_COMPARE_MS;
+
   return {
     ok: false,
-    code: 'API_ERROR',
-    message: `Không thể hoàn thành phân tích so sánh AI: ${lastErrorMsg}`,
+    code: isTimeout ? 'TIMEOUT' : 'API_ERROR',
+    message: isTimeout
+      ? 'Thời gian phân tích so sánh AI vượt quá giới hạn an toàn máy chủ.'
+      : `Không thể hoàn thành phân tích so sánh AI: ${lastErrorMsg}`,
     canFallback: true
   };
 }
