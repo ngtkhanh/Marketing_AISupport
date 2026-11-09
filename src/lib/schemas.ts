@@ -8,38 +8,120 @@ const HAS_LETTER_REGEX = /\p{L}/u;
 const VOWEL_REGEX = /[aeiouyáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ]/iu;
 
 /**
+ * Danh mục từ viết tắt đặc thù và phổ biến trong Marketing, MarTech, AdTech,
+ * kinh doanh số và các chỉ số tăng trưởng (không phân biệt hoa thường).
+ */
+export const MARKETING_ACRONYMS = new Set([
+  // Ngành hàng & Mô hình kinh doanh
+  'fmcg', 'fmcgs', 'cpg', 'cpgs', 'dnvb', 'dnvbs', 'b2b', 'b2c', 'd2c', 'c2c', 'b2b2c',
+  'smb', 'smbs', 'sme', 'smes', 'qsr', 'qsrs', 'horeca', 'o2o', 'p2p', 'ota', 'otas',
+  'dtc', 'dtcs', 'btb', 'btc', 'b2g',
+
+  // Chỉ số & Phễu (Metrics & Funnel)
+  'cltv', 'cltvs', 'ltv', 'ltvs', 'cac', 'cacs', 'mql', 'mqls', 'sql', 'sqls',
+  'pql', 'pqls', 'sal', 'sals', 'mrr', 'mrrs', 'arr', 'arrs', 'gmv', 'gmvs',
+  'aov', 'aovs', 'nps', 'npss', 'csat', 'ces', 'ctr', 'ctrs', 'cpc', 'cpcs',
+  'cpm', 'cpms', 'cpa', 'cpas', 'cpl', 'cpls', 'cpo', 'cpos', 'cpv', 'cpvs',
+  'cpi', 'cpis', 'cps', 'cpss', 'cpe', 'cpes', 'cpd', 'cpds', 'ecpm', 'ecpms',
+  'vcpm', 'vcpms', 'roas', 'roi', 'romi', 'mer', 'mers', 'crr', 'crrs', 'ccr', 'ccrs',
+  'ndr', 'ndrs', 'grr', 'grrs',
+
+  // MarTech, AdTech & Nền tảng
+  'dsp', 'dsps', 'ssp', 'ssps', 'dmp', 'dmps', 'cdp', 'cdps', 'crm', 'crms',
+  'cms', 'cmss', 'erp', 'erps', 'pos', 'poss', 'posm', 'posms', 'sdk', 'sdks',
+  'api', 'apis', 'rpa', 'dam', 'dams', 'pim', 'pims', 'esp', 'esps', 'sms', 'smss',
+  'mms', 'mmss', 'ivr', 'ivrs', 'wms', 'wmss', 'tms', 'tmss',
+
+  // Chiến lược & Kênh tiếp thị
+  'mmm', 'mmms', 'mta', 'mtas', 'plg', 'plgs', 'slg', 'slgs', 'blg', 'abm', 'abms',
+  'kol', 'kols', 'koc', 'kocs', 'ugc', 'ugcs', 'pgc', 'pgcs', 'cgc', 'cgcs',
+  'tvc', 'tvcs', 'pr', 'prs', 'ooh', 'oohs', 'dooh', 'doohs', 'seo', 'seos',
+  'sem', 'sems', 'aso', 'asos', 'smo', 'smos', 'smm', 'smms', 'ppc', 'ppcs',
+  'cta', 'ctas', 'usp', 'usps', 'pod', 'pods', 'pop', 'pops', 'rtb', 'rtbs',
+  'wom', 'woms', 'ewom', 'gtm', 'gtms',
+
+  // Quyền riêng tư, Pháp lý & Kỹ thuật
+  'gdpr', 'ccpa', 'att', 'skan', 'cmp', 'cmps', 'ssl', 'tls', 'cdn', 'cdns', 'dns', 'www'
+]);
+
+/**
+ * Kiểm tra xem một từ đơn có phải là từ viết tắt ngành Marketing / Kinh doanh hợp lệ hay không.
+ * Kết hợp tra cứu từ điển và nhận diện cấu trúc Acronym (chữ in hoa 2-6 ký tự, có thể có đuôi 's' số nhiều).
+ */
+export function isMarketingAcronym(word: string): boolean {
+  const cleanWord = word.replace(/^[()[\]{}"'.,:;\\/+=&_-]+|[()[\]{}"'.,:;\\/+=&_-]+$/g, '');
+  if (!cleanWord) return false;
+  const lower = cleanWord.toLowerCase();
+  if (MARKETING_ACRONYMS.has(lower)) return true;
+  // Dạng viết HOA toàn bộ: 2-6 ký tự chữ hoa hoặc số (FMCG, CLTV, B2B, O2O)
+  if (/^[A-Z0-9]{2,6}$/.test(cleanWord)) return true;
+  // Dạng số nhiều của Acronym: viết HOA kèm đuôi 's' hoặc s (MQLs, SQLs, CTRs, CPMs)
+  if (/^[A-Z0-9]{2,5}('?s)$/.test(cleanWord)) return true;
+  return false;
+}
+
+/**
  * Kiểm tra xem chuỗi có chứa chữ cái lặp 3 lần liên tiếp trở lên (ví dụ: cccc, aaaa, zzzz)
- * Không chặn các số tiền hoặc số lượng hợp lệ như 5.000 hay 20.000.000
+ * Bỏ qua các từ viết tắt hợp lệ (như MMM, WWW) và các số tiền/số lượng (như 5.000 hay 20.000.000)
  */
 export function hasRepeatedChars(text: string): boolean {
-  // Chữ cái lặp 3 lần liên tiếp trở lên
-  if (/(\p{L})\1{2,}/iu.test(text)) return true;
-  // Ký hiệu lạ lặp 4 lần liên tiếp trở lên (trừ chữ cái, số, khoảng trắng)
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  for (const rawW of words) {
+    const w = rawW.replace(/^[()[\]{}"'.,:;\\/+=&_-]+|[()[\]{}"'.,:;\\/+=&_-]+$/g, '');
+    if (!w) continue;
+    // Bỏ qua nếu từ là acronym hợp lệ
+    if (isMarketingAcronym(w)) continue;
+
+    // Chữ cái lặp 3 lần liên tiếp trở lên
+    if (/(\p{L})\1{2,}/iu.test(w)) return true;
+    // Ký hiệu lạ lặp 4 lần liên tiếp trở lên (trừ chữ cái, số, khoảng trắng)
+    if (/([^\s\p{L}0-9])\1{3,}/u.test(w)) return true;
+  }
+
+  // Kiểm tra trên toàn chuỗi với ký hiệu lạ
   if (/([^\s\p{L}0-9])\1{3,}/u.test(text)) return true;
   return false;
 }
 
 /**
  * Kiểm tra chuỗi rác gõ phím ngẫu nhiên (toàn phụ âm, hoặc tỷ lệ ký tự duy nhất quá thấp)
+ * Không chặn nhầm các từ viết tắt Marketing (FMCG, CLTV, MQLs, DNVB...)
  */
 export function isGibberish(text: string): boolean {
   const clean = text.trim();
   if (clean.length < 4) return false;
 
-  // Nếu có từ >= 4 ký tự dính liền nhưng không chứa bất kỳ nguyên âm nào (ví dụ: bcdfgh, asdfgh, zxcvbn)
-  const words = clean.split(/\s+/);
-  for (const w of words) {
+  const words = clean.split(/\s+/).filter(Boolean);
+  let suspiciousCount = 0;
+  let totalWords = 0;
+
+  for (const rawW of words) {
+    const w = rawW.replace(/^[()[\]{}"'.,:;\\/+=&_-]+|[()[\]{}"'.,:;\\/+=&_-]+$/g, '');
+    if (!w) continue;
+    totalWords++;
+
+    // Bỏ qua nếu từ là Acronym hợp lệ
+    if (isMarketingAcronym(w)) continue;
+
+    // Nếu từ >= 4 ký tự dính liền nhưng không chứa bất kỳ nguyên âm nào (ví dụ: bcdfgh, asdfgh, zxcvbn)
     if (w.length >= 4 && !VOWEL_REGEX.test(w) && /^[\p{L}]+$/u.test(w)) {
-      return true;
+      suspiciousCount++;
     }
   }
+
+  // Nếu chuỗi chỉ có 1 từ mà từ đó không có nguyên âm -> Rác gõ bừa
+  if (totalWords === 1 && suspiciousCount >= 1) return true;
+
+  // Nếu câu có nhiều từ, chỉ coi là Gibberish khi tỷ lệ từ nghi vấn rác >= 50%
+  if (totalWords > 1 && suspiciousCount / totalWords >= 0.5) return true;
 
   // Tỷ lệ ký tự phân biệt quá thấp với chuỗi dài >= 6 ký tự (ví dụ: acccccc có 7 ký tự nhưng chỉ 2 ký tự duy nhất)
   const lettersOnly = clean.toLowerCase().replace(/[^\p{L}]/gu, '');
   if (lettersOnly.length >= 6) {
     const uniqueChars = new Set(lettersOnly).size;
     if (uniqueChars / lettersOnly.length < 0.35) {
-      return true;
+      const allAcronyms = words.every((w) => isMarketingAcronym(w));
+      if (!allAcronyms) return true;
     }
   }
 
