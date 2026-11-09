@@ -135,11 +135,11 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* Vùng tương tác chính: Split Screen 2 cột trên Desktop (Trái: Form - Phải: Demo Screencast) */}
+      {/* Vùng tương tác chính: Split Screen 2 cột trên Desktop (Trái: Form - Phải: Demo Screencast), Mobile: Demo hiển thị trước Form */}
       <section className="print:hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          {/* Cột Trái: Form nhập liệu Wizard 3 bước */}
-          <div className="lg:col-span-7">
+          {/* Cột Trái: Form nhập liệu Wizard 3 bước (Trên mobile xếp sau demo: order-2) */}
+          <div className="order-2 lg:order-1 lg:col-span-7">
             <CampaignForm
               onSubmit={handleGenerate}
               isLoading={isLoading}
@@ -152,8 +152,8 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Cột Phải: Demo Screencast góc nhìn người dùng thật */}
-          <div className="lg:col-span-5 lg:sticky lg:top-8">
+          {/* Cột Phải: Demo Screencast góc nhìn người dùng thật (Trên mobile đưa lên đầu: order-1) */}
+          <div className="order-1 lg:order-2 lg:col-span-5 lg:sticky lg:top-8">
             <SelfRunningDemo />
           </div>
         </div>
