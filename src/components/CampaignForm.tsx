@@ -567,17 +567,49 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
 
           {/* Ghi chú bổ sung (tùy chọn) */}
           <div>
-            <label htmlFor="additionalNotes" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Ghi chú bổ sung <span className="text-xs text-slate-400">(Tùy chọn, tối đa 300 ký tự)</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="additionalNotes" className="block text-sm font-medium text-slate-700">
+                Ghi chú bổ sung <span className="text-xs text-slate-400 font-normal">(Tùy chọn, tối đa 600 ký tự)</span>
+              </label>
+              {additionalNotes.length > 0 && (
+                <span
+                  className={`text-xs ${
+                    additionalNotes.length > 600 ? 'text-rose-600 font-semibold' : 'text-slate-400'
+                  }`}
+                >
+                  {additionalNotes.length}/600 ký tự
+                </span>
+              )}
+            </div>
             <textarea
               id="additionalNotes"
               rows={2}
               value={additionalNotes}
-              onChange={(e) => updateFormField('additionalNotes', e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                updateFormField('additionalNotes', val);
+                if (val.length > 600) {
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    additionalNotes: `Ghi chú bổ sung đã vượt quá 600 ký tự (hiện có ${val.length}/600 ký tự). Vui lòng rút gọn lại.`
+                  }));
+                } else if (fieldErrors.additionalNotes) {
+                  setFieldErrors((prev) => ({ ...prev, additionalNotes: '' }));
+                }
+              }}
               placeholder="Ví dụ: Tone giọng hóm hỉnh, đối tượng chính là Gen Z, muốn tập trung TikTok và Threads..."
-              className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 resize-none"
+              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-1 resize-none ${
+                fieldErrors.additionalNotes || additionalNotes.length > 600
+                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50/20'
+                  : 'border-slate-300 focus:border-slate-900 focus:ring-slate-900'
+              }`}
             />
+            {(fieldErrors.additionalNotes || additionalNotes.length > 600) && (
+              <p className="text-xs font-medium text-rose-600 mt-1">
+                {fieldErrors.additionalNotes ||
+                  `Ghi chú bổ sung đã vượt quá 600 ký tự (hiện có ${additionalNotes.length}/600 ký tự). Vui lòng rút gọn lại.`}
+              </p>
+            )}
           </div>
 
           {/* Khối Bổ sung bối cảnh nâng cao tùy chọn (Accordion) */}

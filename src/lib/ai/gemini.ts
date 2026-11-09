@@ -155,7 +155,7 @@ export async function generateMarketingIdeasWithGemini(
       const userPrompt =
         attempt === 1
           ? baseUserPrompt
-          : `${baseUserPrompt}\n\n[LƯU Ý KHẨN CẤP CHO LẦN THỬ LẠI]: Lần tạo trước bị lỗi: "${lastErrorMsg}". Hãy sửa triệt để: đúng 5 ý tưởng, mỗi ý tưởng đúng 4 tuần (week 1 đến 4), không dùng kênh bị cấm.`;
+          : `${baseUserPrompt}\n\n[LƯU Ý KHẨN CẤP CHO LẦN THỬ LẠI - SỬA LỖI NGHIỆP VỤ]:\nLần tạo trước bị vi phạm lỗi sau: "${lastErrorMsg}".\nHÃY SỬA TRIỆT ĐỂ:\n1. Mọi kênh trong mảng 'channels' của mỗi ý tưởng BẮT BUỘC phải có hoạt động triển khai cụ thể trong 4 tuần timeline (hãy ghi rõ tên kênh ở đầu hoạt động, ví dụ: '[Tên kênh] Hoạt động...'). Tuyệt đối không để kênh nào bị bỏ quên.\n2. Đảm bảo đúng 5 ý tưởng khác biệt, mỗi ý tưởng có đủ 4 tuần tuần tự (week 1 đến 4).\n3. Không dùng bất kỳ kênh bị cấm nào đối với mức ngân sách đã chọn.`;
 
       try {
         const rawText = await callGeminiOnce(ai, activeModel, systemPrompt, userPrompt);

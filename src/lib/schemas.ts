@@ -116,8 +116,8 @@ export const additionalNotesFieldSchema = z
   .string()
   .optional()
   .transform((val) => (val ? sanitizeString(val) : ''))
-  .refine((val) => val.length <= 300, {
-    message: 'Ghi chú bổ sung tối đa 300 ký tự'
+  .refine((val) => val.length <= 600, {
+    message: 'Ghi chú bổ sung tối đa 600 ký tự'
   })
   .refine((val) => !val || !hasRepeatedChars(val), {
     message: 'Ghi chú bổ sung chứa ký tự lặp bất thường, bạn vui lòng kiểm tra lại nhé'

@@ -38,8 +38,13 @@ const CHANNEL_SEMANTIC_ALIASES: Record<string, string[]> = {
   'quảng cáo': ['ads', 'chạy', 'chiến dịch', 'giá thầu', 'pixel', 'tối ưu', 'target', 'trả phí'],
   'zalo': ['zalo oa', 'mini app', 'zns', 'tin nhắn', 'nhắn tin', 'chăm sóc khách', 'quét mã', 'qr'],
   'tiktok': ['video ngắn', 'reels', 'clip', 'spark ads', 'trend', 'livestream', 'tiktok shop', 'quay dựng'],
-  'facebook': ['fanpage', 'group', 'hội nhóm', 'bài đăng', 'seeding', 'cộng đồng', 'reels', 'post', 'livestream'],
-  'meta': ['facebook', 'instagram', 'fanpage', 'reels', 'ads', 'quảng cáo'],
+  'facebook': ['fanpage', 'group', 'hội nhóm', 'seeding', 'cộng đồng', 'reels', 'post', 'livestream', 'messenger', 'inbox fanpage', 'fb ads', 'quảng cáo facebook'],
+  'instagram': ['story', 'reels', 'feed', 'lookbook', 'direct', 'dm', 'bio', 'filter', 'ig', 'insta'],
+  'threads': ['threads', 'bài viết ngắn', 'nội dung tương tác', 'chia sẻ text', 'viral text'],
+  'meta': ['facebook', 'instagram', 'fanpage', 'reels', 'ads', 'quảng cáo', 'story'],
+  'website': ['landing page', 'web', 'trang đích', 'form đăng ký', 'traffic web', 'đặt hàng online'],
+  'landing': ['website', 'trang đích', 'landing page', 'form đăng ký', 'thu lead'],
+  'sms': ['tin nhắn sms', 'brandname', 'otp', 'zns tin nhắn'],
   'shopee': ['sàn tmđt', 'gian hàng', 'livestream', 'voucher sàn', 'shopee live', 'e-commerce', 'đặt mua'],
   'email': ['newsletter', 'hộp thư', 'gửi mail', 'automation', 'thư điện tử'],
   'seo': ['bài viết', 'từ khóa', 'google', 'website', 'blog', 'nội dung chuẩn seo'],
@@ -49,6 +54,18 @@ const CHANNEL_SEMANTIC_ALIASES: Record<string, string[]> = {
   'content': ['nội dung', 'bài viết', 'video', 'hình ảnh', 'post', 'truyền thông', 'ấn phẩm', 'bài đăng', 'infographic', 'quotes', 'kịch bản', 'sáng tạo'],
   'offline': ['cửa hàng', 'điểm bán', 'posm', 'tờ rơi', 'standee', 'trực tiếp', 'check-in', 'sự kiện', 'quầy hàng']
 };
+
+/**
+ * Kiểm tra xem từ khóa mục tiêu có xuất hiện trong văn bản không
+ * Với từ khóa ngắn (<= 3 ký tự như 'ig', 'dm', 'ads', 'pr'), yêu cầu biên từ để tránh bắt nhầm chữ con
+ */
+function matchesSearchTarget(target: string, text: string): boolean {
+  if (target.length <= 3) {
+    const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?:^|[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])${escaped}(?:$|[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])`, 'iu').test(text);
+  }
+  return text.includes(target);
+}
 
 /**
  * Kiểm tra tính nhất quán giữa danh sách kênh và hoạt động trong timeline
@@ -93,8 +110,8 @@ function checkChannelTimelineConsistency(idea: MarketingIdea): string[] {
 
     // 4. Kiểm tra có ít nhất 1 từ khóa hoặc từ đồng nghĩa xuất hiện trong hoạt động timeline
     // Hoặc xuất hiện trong ngữ cảnh kết hợp (timeline + mainContent)
-    const isCoveredInTimeline = searchTargets.size === 0 || Array.from(searchTargets).some((target) => timelineText.includes(target));
-    const isCoveredInContext = Array.from(searchTargets).some((target) => combinedContextText.includes(target));
+    const isCoveredInTimeline = searchTargets.size === 0 || Array.from(searchTargets).some((target) => matchesSearchTarget(target, timelineText));
+    const isCoveredInContext = Array.from(searchTargets).some((target) => matchesSearchTarget(target, combinedContextText));
 
     if (!isCoveredInTimeline && !isCoveredInContext) {
       issues.push(

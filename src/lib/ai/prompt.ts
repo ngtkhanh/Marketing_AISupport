@@ -45,7 +45,7 @@ RÀNG BUỘC VỀ CẤU TRÚC ĐẦU RA:
 
 RÀNG BUỘC NHẤT QUÁN KÊNH & TIMELINE (BẮT BUỘC):
 - Mọi kênh bạn đưa vào mảng 'channels' đều PHẢI có ít nhất 1 hoạt động triển khai tương ứng trong các tuần của timeline.
-- Ví dụ: nếu có kênh 'Hợp tác chéo (Cross-promo)', timeline tuần 1 hoặc tuần 2 phải có hoạt động làm việc với đối tác, phát hành voucher chéo hoặc đặt standee liên kết; nếu có kênh 'TikTok', timeline phải có hoạt động quay dựng video ngắn hoặc livestream.
+- QUY TẮC GHI NHÃN KÊNH RÕ RÀNG: Trong danh sách 'activities' của từng tuần, hãy ghi rõ tên kênh thực hiện trong mô tả hoạt động (Ví dụ: '[Facebook/Instagram] Đăng video Reels và hình ảnh lookbook...', '[TikTok] Chạy chiến dịch video trải nghiệm ngắn...', '[Zalo OA] Gửi tin nhắn ưu đãi tri ân khách cũ...', '[Cửa hàng/POSM] Đặt standee và phát voucher...').
 - Tuyệt đối không liệt kê một kênh vào 'channels' mà 4 tuần timeline không hề có hành động nào liên quan.
 
 RÀNG BUỘC NỘI DUNG & AN TOÀN:
