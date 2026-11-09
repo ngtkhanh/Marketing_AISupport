@@ -29,10 +29,12 @@ interface CampaignFormProps {
 
 const PRESET_SAMPLES: Array<{
   name: string;
+  label: string;
   data: CampaignInput;
 }> = [
   {
     name: 'Mẫu 1: F&B (Ngân sách Thấp)',
+    label: 'Mẫu 1: F&B (Trà sữa)',
     data: {
       industry: 'F&B (Đồ uống & Trà sữa)',
       productName: 'Trà Sữa Trân Châu Mộc Trà',
@@ -50,6 +52,7 @@ const PRESET_SAMPLES: Array<{
   },
   {
     name: 'Mẫu 2: Thời trang (Ngân sách Cao)',
+    label: 'Mẫu 2: Thời trang',
     data: {
       industry: 'Thời trang & May mặc',
       productName: 'Bộ Sưu Tập Áo Khoác Mùa Thu Aurora',
@@ -67,6 +70,7 @@ const PRESET_SAMPLES: Array<{
   },
   {
     name: 'Mẫu 3: Công nghệ SaaS (Ngân sách Trung bình)',
+    label: 'Mẫu 3: Công nghệ',
     data: {
       industry: 'Công nghệ & Phần mềm',
       productName: 'Ứng Dụng Học Tiếng Anh AI EngMaster',
@@ -355,9 +359,9 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
               key={idx}
               type="button"
               onClick={() => handlePrefill(sample)}
-              className="text-xs px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors border border-slate-200 cursor-pointer"
+              className="text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors border border-slate-200 cursor-pointer shadow-xs active:scale-95"
             >
-              Mẫu {idx + 1} ({sample.data.industry.split(' ')[0]})
+              {sample.label}
             </button>
           ))}
         </div>
@@ -662,7 +666,7 @@ export function CampaignForm({ onSubmit, isLoading, onReset, serverFieldErrors }
                 <div className="col-span-1 sm:col-span-2 pt-2 border-t border-slate-100 space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-slate-800 text-xs">Hồ sơ thương hiệu nhỏ (Mục 5)</span>
-                    <span className="text-[11px] text-slate-400">— Tùy chọn để AI may đo đúng phong cách</span>
+                    <span className="text-[11px] text-slate-400">— Tùy chọn để AI đề xuất đúng phong cách</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

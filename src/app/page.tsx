@@ -16,6 +16,7 @@ import { useCampaign } from '@/context/CampaignContext';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useToast } from '@/components/Toast';
 import { exportCampaignToDocx, printCampaignReport } from '@/lib/export-report';
+import { BUDGET_CONFIGS } from '@/lib/config/budget';
 
 export default function HomePage() {
   const { ideas, setIdeas, lastInput, setLastInput, clearAllCampaignData } = useCampaign();
@@ -197,7 +198,12 @@ export default function HomePage() {
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                     Đã cá nhân hóa cho sản phẩm <strong>"{lastInput.productName}"</strong> · Ngân sách{' '}
-                    <span className="font-semibold text-slate-800 uppercase">{lastInput.budgetLevel}</span>
+                    <span className="font-bold text-slate-800">
+                      {BUDGET_CONFIGS[lastInput.budgetLevel]?.label || lastInput.budgetLevel}
+                    </span>
+                    <span className="text-slate-400 font-mono text-xs ml-1">
+                      ({BUDGET_CONFIGS[lastInput.budgetLevel]?.rangeText})
+                    </span>
                   </p>
                 </div>
 

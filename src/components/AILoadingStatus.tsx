@@ -60,7 +60,7 @@ export function AILoadingStatus() {
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900">
-              AI Đang Phân Tích & May Đo 05 Ý Tưởng Chiến Dịch
+              AI đang phân tích & đề xuất 05 ý tưởng chiến dịch
             </h3>
             <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
               <Clock className="w-3.5 h-3.5 text-slate-400" />

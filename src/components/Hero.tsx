@@ -104,8 +104,8 @@ export function Hero({ onScrollToForm, onScrollToResults, hasResults }: HeroProp
             </div>
 
             {/* Headline Sắc Nét Tuyệt Đối */}
-            <h1 className="text-3xl sm:text-5xl lg:text-5xl font-extrabold tracking-tight leading-[1.15] text-white">
-              Lập kế hoạch & ý tưởng marketing <br />
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-5xl font-extrabold sm:font-black tracking-[-0.025em] leading-[1.12] text-white">
+              Lập kế hoạch & ý tưởng Marketing <br />
               <span className="text-cyan-400">
                 theo ngân sách thực tế
               </span>

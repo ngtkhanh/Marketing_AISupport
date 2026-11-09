@@ -573,7 +573,7 @@ export function SelfRunningDemo() {
                 <div className="pt-2">
                   <div className="p-2 rounded-lg bg-indigo-50/60 border border-indigo-100 text-[11px] text-indigo-900 flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                    <span>Hệ thống tự động may đo ý tưởng theo đặc thù ngành hàng</span>
+                    <span>Hệ thống tự động đề xuất ý tưởng theo đặc thù ngành hàng</span>
                   </div>
                 </div>
               </div>
@@ -704,7 +704,7 @@ export function SelfRunningDemo() {
                   {isSubmitting ? (
                     <>
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Đang may đo 05 ý tưởng...</span>
+                      <span>Đang đề xuất 05 ý tưởng...</span>
                     </>
                   ) : (
                     <>
