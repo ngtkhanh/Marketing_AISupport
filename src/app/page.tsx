@@ -11,11 +11,11 @@ import { AILoadingStatus } from '@/components/AILoadingStatus';
 import { IdeaJumpNav } from '@/components/IdeaJumpNav';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { SourceBadge } from '@/components/SourceBadge';
-import { Sparkles, Compass, Bookmark, BookmarkCheck, RotateCcw, FileDown, Printer } from 'lucide-react';
+import { Sparkles, Compass, Bookmark, BookmarkCheck, RotateCcw, FileText, Printer } from 'lucide-react';
 import { useCampaign } from '@/context/CampaignContext';
 import { useShortlist } from '@/hooks/useShortlist';
 import { useToast } from '@/components/Toast';
-import { generateCampaignMarkdown, downloadMarkdownFile, printCampaignReport } from '@/lib/export-report';
+import { exportCampaignToDocx, printCampaignReport } from '@/lib/export-report';
 
 export default function HomePage() {
   const { ideas, setIdeas, lastInput, setLastInput, clearAllCampaignData } = useCampaign();
@@ -29,6 +29,7 @@ export default function HomePage() {
   const [errorCode, setErrorCode] = useState<string | undefined>();
   const [serverFieldErrors, setServerFieldErrors] = useState<Record<string, string>>({});
   const [activeIdeaIndex, setActiveIdeaIndex] = useState<number>(0);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
 
   const formRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -63,17 +64,19 @@ export default function HomePage() {
     }
   };
 
-  const handleExportMarkdown = () => {
+  const handleExportWord = async () => {
     if (!lastInput || ideas.length === 0) return;
-    const md = generateCampaignMarkdown(ideas, lastInput);
-    const sanitizedName = lastInput.productName
-      .toLowerCase()
-      .replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-');
-    const filename = `ke-hoach-marketing-${sanitizedName || 'chien-dich'}.md`;
-    downloadMarkdownFile(filename, md);
-    showToast('Đã tải xuống file báo cáo Markdown (.md)', 'success');
+    setIsExportingDocx(true);
+    showToast('Đang tạo và định dạng file Word (.docx)...', 'info');
+    try {
+      await exportCampaignToDocx(ideas, lastInput);
+      showToast('Đã tải xuống file Word (.docx) thành công!', 'success');
+    } catch (err) {
+      console.error('Word export error:', err);
+      showToast('Không thể xuất file Word. Vui lòng thử lại.', 'error');
+    } finally {
+      setIsExportingDocx(false);
+    }
   };
 
   const handlePrint = () => {
@@ -201,12 +204,13 @@ export default function HomePage() {
                 <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
                   <button
                     type="button"
-                    onClick={handleExportMarkdown}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-colors bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 cursor-pointer print:hidden shadow-xs"
-                    title="Tải toàn bộ 05 ý tưởng chiến dịch dưới dạng file Markdown (.md)"
+                    onClick={handleExportWord}
+                    disabled={isExportingDocx}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-colors bg-white hover:bg-indigo-50 text-indigo-700 hover:text-indigo-800 border border-indigo-200 cursor-pointer print:hidden shadow-xs disabled:opacity-60"
+                    title="Tải toàn bộ 05 ý tưởng chiến dịch dưới dạng file Word (.docx)"
                   >
-                    <FileDown className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Tải .MD</span>
+                    <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>{isExportingDocx ? 'Đang xuất Word...' : 'Tải file Word (.docx)'}</span>
                   </button>
 
                   <button
