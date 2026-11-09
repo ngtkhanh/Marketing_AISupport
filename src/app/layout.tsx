@@ -24,7 +24,7 @@ export default function RootLayout({
         <ToastProvider>
           <CampaignProvider>
             <Header />
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+            <main className="flex-1 w-full">
               {children}
             </main>
             <footer className="w-full border-t border-slate-200 bg-white py-6 mt-12 text-center text-xs text-slate-500">

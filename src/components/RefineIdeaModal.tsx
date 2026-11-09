@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MarketingIdea, CampaignInput, RefineIdeaResponse } from '@/types/marketing';
 import {
   Sparkles,
@@ -62,6 +63,7 @@ export function RefineIdeaModal({
   onApplyRefinedIdea
 }: RefineIdeaModalProps) {
   const { showToast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [instruction, setInstruction] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -70,6 +72,11 @@ export function RefineIdeaModal({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Reset state mỗi khi mở modal
   useEffect(() => {
@@ -160,12 +167,14 @@ export function RefineIdeaModal({
   const currentVersion = idea.version || 1;
   const nextVersion = (refinedResult?.refinedIdea.version) || currentVersion + 1;
 
-  return (
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="refine-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
     >
       <div
         ref={modalRef}
@@ -480,7 +489,8 @@ export function RefineIdeaModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -82,7 +82,7 @@ export default function ShortlistPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6 animate-in fade-in duration-300">
       {/* Header page */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>

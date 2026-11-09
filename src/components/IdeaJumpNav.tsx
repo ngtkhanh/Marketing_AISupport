@@ -6,11 +6,15 @@ import { MarketingIdea } from '@/types/marketing';
 
 interface IdeaJumpNavProps {
   ideas: MarketingIdea[];
+  activeId?: number;
+  onSelect?: (idx: number) => void;
 }
 
-export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
-  const [activeId, setActiveId] = useState<number>(1);
+export function IdeaJumpNav({ ideas, activeId: controlledActiveId, onSelect }: IdeaJumpNavProps) {
+  const [internalActiveId, setInternalActiveId] = useState<number>(1);
   const [isVisible, setIsVisible] = useState(false);
+
+  const activeId = controlledActiveId !== undefined ? controlledActiveId : internalActiveId;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,15 +22,16 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
       const scrollY = window.scrollY;
       setIsVisible(scrollY > 320);
 
-      // Xác định card nào đang ở trong viewport
-      for (let i = 1; i <= ideas.length; i++) {
-        const el = document.getElementById(`idea-card-${i}`);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          // Nếu phần trên của card cách đỉnh màn hình dưới 300px và phần dưới vẫn còn thấy
-          if (rect.top <= 250 && rect.bottom >= 150) {
-            setActiveId(i);
-            break;
+      // Nếu không dùng controlled activeId thì mới tự tính theo viewport
+      if (controlledActiveId === undefined) {
+        for (let i = 1; i <= ideas.length; i++) {
+          const el = document.getElementById(`idea-card-${i}`);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top <= 250 && rect.bottom >= 150) {
+              setInternalActiveId(i);
+              break;
+            }
           }
         }
       }
@@ -36,15 +41,20 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [ideas]);
+  }, [ideas, controlledActiveId]);
 
   const scrollToIdea = (idx: number) => {
+    if (onSelect) {
+      onSelect(idx);
+      return;
+    }
+
     const el = document.getElementById(`idea-card-${idx}`);
     if (el) {
       const yOffset = -80; // Trừ khoảng trống cho fixed header
       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
-      setActiveId(idx);
+      setInternalActiveId(idx);
     }
   };
 
@@ -57,10 +67,10 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
   return (
     <nav
       aria-label="Thanh điều hướng nhanh ý tưởng"
-      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-white border border-slate-200 shadow-lg rounded-lg px-2.5 py-1.5 flex items-center gap-1 sm:gap-1.5 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-[94vw] overflow-x-auto print:hidden"
+      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-white/90 backdrop-blur-md border border-slate-200/90 shadow-2xl rounded-full px-3 py-2 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-[94vw] overflow-x-auto print:hidden"
     >
-      <div className="hidden sm:flex items-center gap-1.5 pl-1 pr-2 text-xs font-medium text-slate-500 border-r border-slate-200">
-        <Navigation className="w-3.5 h-3.5 text-slate-400" />
+      <div className="hidden sm:flex items-center gap-1.5 pl-2 pr-2 text-xs font-bold text-slate-700 border-r border-slate-200">
+        <Navigation className="w-3.5 h-3.5 text-indigo-600" />
         <span>Ý tưởng:</span>
       </div>
 
@@ -74,9 +84,9 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
               key={idea.id || num}
               type="button"
               onClick={() => scrollToIdea(num)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold font-mono transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-slate-900 text-white'
+                  ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-500/30'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
               title={`Cuộn đến Ý tưởng #${num}: ${idea.title}`}
@@ -91,7 +101,7 @@ export function IdeaJumpNav({ ideas }: IdeaJumpNavProps) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="p-1.5 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
           title="Cuộn lên đầu trang"
         >
           <ArrowUp className="w-4 h-4" />

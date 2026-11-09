@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   CampaignProposal,
   MarketingIdea,
@@ -53,11 +54,17 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
   onProposalSaved
 }) => {
   const { showToast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<ProposalTab>('overview');
   const [proposal, setProposal] = useState<CampaignProposal | null>(null);
   const [isSavedRecently, setIsSavedRecently] = useState(false);
   const [initialBudget, setInitialBudget] = useState<number>(0);
   const [isBudgetOutOfSync, setIsBudgetOutOfSync] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Khởi tạo hoặc tải proposal đã lưu từ localStorage
   const initProposal = useCallback(() => {
@@ -81,7 +88,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     setIsBudgetOutOfSync(false);
   }, [initProposal]);
 
-  if (!isOpen || !proposal) return null;
+  if (!isOpen || !proposal || !mounted) return null;
 
   // Xử lý lưu proposal
   const handleSave = (silent = false) => {
@@ -90,7 +97,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     if (ok) {
       setIsSavedRecently(true);
       if (!silent) {
-        showToast('Đã lưu bản Đề xuất thành công vào trình duyệt!', 'success');
+        showToast('Đã lưu bản đề xuất thành công vào trình duyệt!', 'success');
       }
       if (onProposalSaved) {
         onProposalSaved(proposal);
@@ -111,7 +118,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
       setInitialBudget(refreshed.budgetAllocation.totalBudget);
       setIsBudgetOutOfSync(false);
       saveProposal(refreshed);
-      showToast('Đã khôi phục bản đề xuất về mẫu chuẩn Playbook ban đầu.', 'info');
+      showToast('Đã khôi phục bản đề xuất về mẫu chuẩn playbook ban đầu.', 'info');
     }
   };
 
@@ -141,14 +148,19 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
     showToast('Đã cập nhật lại toàn bộ KPI theo ngân sách mới!', 'success');
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-slate-50 rounded-2xl w-full max-w-5xl max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modal Bản Đề Xuất Điều Hành"
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200"
+    >
+      <div className="bg-slate-50 rounded-2xl sm:rounded-3xl w-full max-w-6xl max-h-[92vh] flex flex-col shadow-2xl border border-slate-200/90 overflow-hidden my-auto animate-in zoom-in-98 duration-200">
         {/* Header Modal */}
         <div className="bg-white border-b border-slate-200 px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
                 Meeting-Ready Proposal
               </span>
               <span className="text-xs text-slate-500 font-medium">
@@ -156,7 +168,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-bold text-slate-900 mt-1 line-clamp-1">
-              Bản Đề Xuất Chiến Dịch: {idea.title}
+              Bản đề xuất chiến dịch: {idea.title}
             </h2>
           </div>
 
@@ -166,7 +178,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
               type="button"
               onClick={handleResetToDefault}
               title="Đặt lại về mẫu chuẩn ban đầu"
-              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
+              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -175,7 +187,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
             <button
               type="button"
               onClick={() => handleSave(false)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 ${
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer ${
                 isSavedRecently
                   ? 'bg-emerald-600 text-white'
                   : 'bg-indigo-600 hover:bg-indigo-700 text-white'
@@ -189,7 +201,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>Lưu Proposal</span>
+                  <span>Lưu proposal</span>
                 </>
               )}
             </button>
@@ -198,7 +210,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('print')}
-              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center gap-1.5 transition"
+              className="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center gap-1.5 transition cursor-pointer"
             >
               <Printer className="w-4 h-4 text-slate-600" />
               <span className="hidden sm:inline">Xuất A4</span>
@@ -211,7 +223,7 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
                 handleSave(true); // Tự động lưu nháp khi đóng
                 onClose();
               }}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition cursor-pointer"
               title="Đóng modal"
             >
               <X className="w-5 h-5" />
@@ -219,84 +231,84 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
           </div>
         </div>
 
-        {/* Navigation Tabs Bar */}
-        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-2 overflow-x-auto flex items-center gap-1 sm:gap-2 shrink-0 scrollbar-none">
+        {/* Navigation Tabs Bar (WACT Capsule Pills) */}
+        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-2.5 overflow-x-auto flex items-center gap-1 sm:gap-2 shrink-0 scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveTab('overview')}
-            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <FileCheck2 className="w-4 h-4 text-indigo-600" />
-            <span>Quyết định & Tổng quan</span>
+            <FileCheck2 className={`w-4 h-4 ${activeTab === 'overview' ? 'text-cyan-300' : 'text-indigo-600'}`} />
+            <span>Quyết định & tổng quan</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('budget')}
-            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'budget'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <DollarSign className="w-4 h-4 text-emerald-600" />
+            <DollarSign className={`w-4 h-4 ${activeTab === 'budget' ? 'text-emerald-300' : 'text-emerald-600'}`} />
             <span>Ngân sách bóc tách</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('kpi')}
-            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'kpi'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <BarChart3 className="w-4 h-4 text-indigo-600" />
-            <span>3 Kịch bản KPI</span>
+            <BarChart3 className={`w-4 h-4 ${activeTab === 'kpi' ? 'text-cyan-300' : 'text-indigo-600'}`} />
+            <span>3 kịch bản KPI</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('checklist')}
-            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'checklist'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <CheckSquare className="w-4 h-4 text-amber-600" />
-            <span>Lộ trình & Checklist</span>
+            <CheckSquare className={`w-4 h-4 ${activeTab === 'checklist' ? 'text-amber-300' : 'text-amber-600'}`} />
+            <span>Lộ trình & checklist</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('risk')}
-            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'risk'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <ShieldAlert className="w-4 h-4 text-rose-600" />
+            <ShieldAlert className={`w-4 h-4 ${activeTab === 'risk' ? 'text-rose-300' : 'text-rose-600'}`} />
             <span>Rủi ro & Plan B</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('print')}
-            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'print'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-indigo-600 hover:bg-indigo-50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <Printer className="w-4 h-4" />
-            <span>Xem & In Bản A4</span>
+            <Printer className={`w-4 h-4 ${activeTab === 'print' ? 'text-cyan-300' : 'text-slate-600'}`} />
+            <span>Xem & in bản A4</span>
           </button>
         </div>
 
@@ -401,7 +413,8 @@ export const ProposalModal: React.FC<ProposalModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
